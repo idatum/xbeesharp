@@ -1,0 +1,69 @@
+namespace XbeeSharp;
+
+/// <summary>
+/// Recieve packet.
+/// </summary>
+public class XbeeReceivePacket : XbeeBasePacket
+{
+    /// <summary>
+    /// Receive data.
+    /// </summary>
+    private IReadOnlyList<byte> _receiveData;
+
+    /// <summary>
+    /// Construct receive packet.
+    /// </summary>
+    private XbeeReceivePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
+                                IReadOnlyList<byte> networkAddress, byte receiveOptions,
+                                IReadOnlyList<byte> receiveData)
+                                : base(xbeeFrame, sourceAddress, networkAddress, receiveOptions)
+    {
+        _receiveData = receiveData;
+    }
+
+    /// <summary>
+    /// Create receive packet from XBee frame.
+    /// </summary>
+    public static bool Parse(out XbeeReceivePacket? packet, XbeeFrame xbeeFrame)
+    {
+        packet = null;
+        const int DataOffset = 15;
+
+        if (xbeeFrame.FrameType != XbeeBasePacket.PacketTypeReceive ||
+            xbeeFrame.FrameDataLength <= DataOffset)
+        {
+            return false;
+        }
+
+        var frameData = new List<byte>(xbeeFrame.FrameData);
+        // 64-bit source address.
+        var sourceAddress = frameData.GetRange(4, 8);
+        // 16-bit source network address.
+        var networkAddress = frameData.GetRange(12, 2);
+        // Receive option.
+        var receiveOption = frameData[14];
+        // Receive data
+        // 15 byte offset; length is data frame length - 15 byte offset + start byte + 2 length bytes.
+        var receiveData = frameData.GetRange(DataOffset, xbeeFrame.FrameDataLength - DataOffset + 3);
+
+        packet = new XbeeReceivePacket(xbeeFrame, sourceAddress, networkAddress, receiveOption, receiveData);
+
+        return true;
+    }
+
+    /// <summary>
+    /// XBee frame indicator.
+    /// </summary>
+    public byte FrameType
+    {
+        get => XbeeBasePacket.PacketTypeReceive;
+    }
+
+    /// <summary>
+    /// Receive data.
+    /// </summary>
+    public IReadOnlyList<byte> ReceiveData
+    {
+        get => _receiveData;
+    }
+}

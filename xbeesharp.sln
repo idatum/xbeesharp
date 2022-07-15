@@ -1,0 +1,40 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30114.105
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "XbeeSharp", "XbeeSharp\XbeeSharp.csproj", "{519F3C8C-3E02-4162-BBFB-7B92107D9818}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "apps", "apps", "{B8E6858D-0279-4272-AD5A-2BC3C1127C38}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xbeesimple", "apps\xbeesimple\xbeesimple.csproj", "{50A32F62-E117-4509-8BF7-1F035611DFC3}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "xbee2mqtt", "apps\xbee2mqtt\xbee2mqtt.csproj", "{07DFBF0D-DD0D-432B-B052-12F25D8A9B7F}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{519F3C8C-3E02-4162-BBFB-7B92107D9818}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{519F3C8C-3E02-4162-BBFB-7B92107D9818}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{519F3C8C-3E02-4162-BBFB-7B92107D9818}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{519F3C8C-3E02-4162-BBFB-7B92107D9818}.Release|Any CPU.Build.0 = Release|Any CPU
+		{50A32F62-E117-4509-8BF7-1F035611DFC3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{50A32F62-E117-4509-8BF7-1F035611DFC3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{50A32F62-E117-4509-8BF7-1F035611DFC3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{50A32F62-E117-4509-8BF7-1F035611DFC3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{07DFBF0D-DD0D-432B-B052-12F25D8A9B7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{07DFBF0D-DD0D-432B-B052-12F25D8A9B7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{07DFBF0D-DD0D-432B-B052-12F25D8A9B7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{07DFBF0D-DD0D-432B-B052-12F25D8A9B7F}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{50A32F62-E117-4509-8BF7-1F035611DFC3} = {B8E6858D-0279-4272-AD5A-2BC3C1127C38}
+		{07DFBF0D-DD0D-432B-B052-12F25D8A9B7F} = {B8E6858D-0279-4272-AD5A-2BC3C1127C38}
+	EndGlobalSection
+EndGlobal

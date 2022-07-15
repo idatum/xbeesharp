@@ -21,7 +21,7 @@ jobs:
             username: ${{ secrets.REGISTRY_USERNAME }}
             password: ${{ secrets.REGISTRY_PASSWORD }}
         - run: |
-            docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/xbee2mqtt:${{ github.sha }}
-            docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/xbee2mqtt:latest
+            docker build . -f Dockerfile.xbee2mqtt -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/xbee2mqtt:${{ github.sha }}
+            docker build . -f Dockerfile.xbee2mqtt -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/xbee2mqtt:latest
             docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/xbee2mqtt:${{ github.sha }}
             docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/xbee2mqtt:latest

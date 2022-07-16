@@ -176,7 +176,7 @@ class Program
                     _tracing.Warning("Partial frame read.");
                     continue;
                 }
-                if (xbeeFrame.FrameType == XbeeBasePacket.PacketTypeReceive)
+                if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
                 {
                     XbeeReceivePacket? receivePacket;
                     if (!XbeeReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
@@ -198,7 +198,7 @@ class Program
                     }
                     await PublishMessageAsync($"{topic}", receivePacket.ReceiveData);
                 }
-                else if (xbeeFrame.FrameType == XbeeBasePacket.PacketTypeReceiveIO)
+                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
                 {
                     XbeeReceiveIOPacket? receivePacket;
                     if (!XbeeReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
@@ -228,15 +228,15 @@ class Program
                     }
                 }
                 // Common known packet types not processed:
-                else if (xbeeFrame.FrameType == XbeeBasePacket.RouteRecordIndicator)
+                else if (xbeeFrame.FrameType == XbeeFrame.RouteRecordIndicator)
                 {
                     _tracing.Debug("Skipping Route Record Indicator packet.");
                 }
-                else if (xbeeFrame.FrameType == XbeeBasePacket.ExtendedTransmitStatus)
+                else if (xbeeFrame.FrameType == XbeeFrame.ExtendedTransmitStatus)
                 {
                     _tracing.Debug("Skipping Extended Transmit Status packet.");
                 }
-                else if (xbeeFrame.FrameType == XbeeBasePacket.PacketTypeRemoteATCommandResponse)
+                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
                 {
                     _tracing.Debug("Skipping Remote AT Command Response.");
                 }

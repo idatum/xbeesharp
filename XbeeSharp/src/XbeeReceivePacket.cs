@@ -14,9 +14,9 @@ public class XbeeReceivePacket : XbeeBasePacket
     /// Construct receive packet.
     /// </summary>
     private XbeeReceivePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
-                                IReadOnlyList<byte> networkAddress, byte receiveOptions,
+                                byte receiveOptions,
                                 IReadOnlyList<byte> receiveData)
-                                : base(xbeeFrame, sourceAddress, networkAddress, receiveOptions)
+                                : base(xbeeFrame, sourceAddress, receiveOptions)
     {
         _receiveData = receiveData;
     }
@@ -29,7 +29,7 @@ public class XbeeReceivePacket : XbeeBasePacket
         packet = null;
         const int DataOffset = 15;
 
-        if (xbeeFrame.FrameType != XbeeBasePacket.PacketTypeReceive ||
+        if (xbeeFrame.FrameType != XbeeFrame.PacketTypeReceive ||
             xbeeFrame.FrameDataLength <= DataOffset)
         {
             return false;
@@ -46,7 +46,7 @@ public class XbeeReceivePacket : XbeeBasePacket
         // 15 byte offset; length is data frame length - 15 byte offset + start byte + 2 length bytes.
         var receiveData = frameData.GetRange(DataOffset, xbeeFrame.FrameDataLength - DataOffset + 3);
 
-        packet = new XbeeReceivePacket(xbeeFrame, sourceAddress, networkAddress, receiveOption, receiveData);
+        packet = new XbeeReceivePacket(xbeeFrame, sourceAddress, receiveOption, receiveData);
 
         return true;
     }
@@ -56,7 +56,7 @@ public class XbeeReceivePacket : XbeeBasePacket
     /// </summary>
     public byte FrameType
     {
-        get => XbeeBasePacket.PacketTypeReceive;
+        get => XbeeFrame.PacketTypeReceive;
     }
 
     /// <summary>

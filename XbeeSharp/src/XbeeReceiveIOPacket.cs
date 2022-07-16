@@ -5,7 +5,6 @@ namespace XbeeSharp;
 /// </summary>
 public class XbeeReceiveIOPacket : XbeeBasePacket
 {
-    private byte _sampleCount;
     /// <summary>
     /// Digital sample mask.
     /// </summary>
@@ -27,12 +26,11 @@ public class XbeeReceiveIOPacket : XbeeBasePacket
     /// Construct IO sample packet.
     /// </summary>
     private XbeeReceiveIOPacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
-                                IReadOnlyList<byte> networkAddress, byte receiveOptions,
-                                byte sampleCount, ushort digitalChannelMask, byte analogChannelMask,
+                                byte receiveOptions,
+                                ushort digitalChannelMask, byte analogChannelMask,
                                 IReadOnlyList<string> digitalSamples, IReadOnlyList<string> analogSamples)
-                                : base(xbeeFrame, sourceAddress, networkAddress, receiveOptions)
+                                : base(xbeeFrame, sourceAddress, receiveOptions)
     {
-        _sampleCount = sampleCount;
         _digitalChannelMask = digitalChannelMask;
         _analogChannelMask = analogChannelMask;
         _digitalSamples = digitalSamples;
@@ -46,7 +44,7 @@ public class XbeeReceiveIOPacket : XbeeBasePacket
     {
         packet = null;
         const int DataOffset = 15;
-        if (xbeeFrame.FrameType != XbeeBasePacket.PacketTypeReceiveIO ||
+        if (xbeeFrame.FrameType != XbeeFrame.PacketTypeReceiveIO ||
             xbeeFrame.FrameDataLength <= DataOffset)
         {
             return false;
@@ -97,8 +95,7 @@ public class XbeeReceiveIOPacket : XbeeBasePacket
             }
         }
 
-        packet = new XbeeReceiveIOPacket(xbeeFrame, sourceAddress, networkAddress, receiveOption,
-                                            sampleCount,
+        packet = new XbeeReceiveIOPacket(xbeeFrame, sourceAddress, receiveOption,
                                             digitalChannelMask, analogChannelMask,
                                             digitalSamples, analogSamples);
 
@@ -110,15 +107,7 @@ public class XbeeReceiveIOPacket : XbeeBasePacket
     /// </summary>
     public byte FrameType
     {
-        get => XbeeBasePacket.PacketTypeReceiveIO;
-    }
-
-    /// <summary>
-    /// Number of samples.
-    /// </summary>
-    public int sampleCount
-    {
-        get => _sampleCount;
+        get => XbeeFrame.PacketTypeReceiveIO;
     }
 
     /// <summary>

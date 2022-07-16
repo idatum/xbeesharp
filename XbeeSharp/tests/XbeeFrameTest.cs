@@ -170,7 +170,7 @@ public class XbeeFrameTest
     {
         var xbeeFrame = new XbeeFrame(new List<byte>(ValidRXPacket), true);
         Xunit.Assert.NotNull(xbeeFrame.FrameData);
-        Xunit.Assert.Equal(XbeeBasePacket.PacketTypeReceive, xbeeFrame.FrameType);
+        Xunit.Assert.Equal(XbeeFrame.PacketTypeReceive, xbeeFrame.FrameType);
     }
 
     [Fact]
@@ -178,6 +178,6 @@ public class XbeeFrameTest
     {
         var xbeeFrame = new XbeeFrame(new List<byte>(EscapedTXPacket), true);
         Xunit.Assert.NotNull(xbeeFrame.FrameData);
-        Xunit.Assert.Equal(XbeeBasePacket.PacketTypeTransmit, xbeeFrame.FrameType);
+        Xunit.Assert.Equal(XbeeFrame.PacketTypeTransmit, xbeeFrame.FrameType);
     }
 }

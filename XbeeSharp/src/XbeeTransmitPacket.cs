@@ -3,30 +3,8 @@ namespace XbeeSharp;
 /// <summary>
 /// Transmit request packet.
 /// </summary>
-public class XbeeTransmitPacket : XbeeBasePacket
+public static class XbeeTransmitPacket
 {
-    /// <summary>
-    /// Receive data.
-    /// </summary>
-    private IReadOnlyList<byte> _receiveData;
-
-    /// <summary>
-    /// Escaped packet.
-    /// <summary>
-    private bool _escaped;
-
-    /// <summary>
-    /// Construct receive packet.
-    /// </summary>
-    private XbeeTransmitPacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
-                                IReadOnlyList<byte> networkAddress, byte receiveOptions,
-                                IReadOnlyList<byte> receiveData, bool escaped=true)
-                                : base(xbeeFrame, sourceAddress, networkAddress, receiveOptions)
-    {
-        _receiveData = receiveData;
-        _escaped = escaped;
-    }
-
     /// <summary>
     /// Create underlying XBee frame.
     /// </summary>
@@ -41,7 +19,7 @@ public class XbeeTransmitPacket : XbeeBasePacket
         ushort dataLen = 0;
         List<byte> frameData = new List<byte>();
         // Packet type
-        frameData.Add(XbeeBasePacket.PacketTypeTransmit);
+        frameData.Add(XbeeFrame.PacketTypeTransmit);
         ++dataLen;
         // Frame ID
         frameData.Add(1);
@@ -91,21 +69,5 @@ public class XbeeTransmitPacket : XbeeBasePacket
             return false;
         }
         return true;
-    }
-
-    /// <summary>
-    /// XBee frame indicator.
-    /// </summary>
-    public byte FrameType
-    {
-        get => XbeeBasePacket.PacketTypeReceive;
-    }
-
-    /// <summary>
-    /// Receive options bit field.
-    /// </summary>
-    public IReadOnlyList<byte> ReceiveData
-    {
-        get => _receiveData;
     }
 }

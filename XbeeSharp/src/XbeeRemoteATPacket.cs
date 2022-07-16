@@ -3,29 +3,8 @@ namespace XbeeSharp;
 /// <summary>
 /// Transmit request packet.
 /// </summary>
-public class XbeeRemoteATPacket : XbeeBasePacket
+public static class XbeeRemoteATPacket
 {
-    /// <summary>
-    /// AT command.
-    /// </summary>
-    private byte[] _command;
-    /// <summary>
-    /// Parameter value.
-    /// </summary>
-    private IReadOnlyList<byte> _parameterValue;
-
-    /// <summary>
-    /// Construct receive packet.
-    /// </summary>
-    private XbeeRemoteATPacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
-                                IReadOnlyList<byte> networkAddress, byte receiveOptions,
-                                byte[] command, IReadOnlyList<byte> parameterValue)
-                                : base(xbeeFrame, sourceAddress, networkAddress, receiveOptions)
-    {
-        _command = command;
-        _parameterValue = parameterValue;
-    }
-
     /// <summary>
     /// Create underlying XBee frame.
     /// </summary>
@@ -40,7 +19,7 @@ public class XbeeRemoteATPacket : XbeeBasePacket
         ushort dataLen = 0;
         List<byte> frameData = new List<byte>();
         // Packet type
-        frameData.Add(XbeeBasePacket.PacketRemoteAT);
+        frameData.Add(XbeeFrame.PacketRemoteAT);
         ++dataLen;
         // Frame ID
         frameData.Add(1);
@@ -91,29 +70,5 @@ public class XbeeRemoteATPacket : XbeeBasePacket
             return false;
         }
         return true;
-    }
-
-    /// <summary>
-    /// XBee frame indicator.
-    /// </summary>
-    public byte FrameType
-    {
-        get => XbeeBasePacket.PacketRemoteAT;
-    }
-
-    /// <summary>
-    /// AT command.
-    /// </summary>
-    public byte[] Command
-    {
-        get => _command;
-    }
-
-    /// <summary>
-    /// Parameter value.
-    /// </summary>
-    public IReadOnlyList<byte> ParameterValue
-    {
-        get => _parameterValue;
     }
 }

@@ -6,6 +6,36 @@ namespace XbeeSharp;
 public class XbeeFrame
 {
     /// <summary>
+    /// https://www.digi.com/resources/documentation/digidocs/pdfs/90002002.pdf
+    ///
+    // TX request.
+    /// </summary>
+    public const byte PacketTypeTransmit = 0x10;
+    /// <summary>
+    /// Remote AT Command Request
+    /// </summary>
+    public const byte PacketRemoteAT = 0x17;
+    /// <summary>
+    /// RX receive.
+    /// </summary>
+    public const byte PacketTypeReceive = 0x90;
+    /// <summary>
+    /// RX IO data received.
+    /// </summary>
+    public const byte PacketTypeReceiveIO = 0x92;
+    /// <summary>
+    /// Remote AT Command Response.
+    /// <summary>
+    public const byte PacketTypeRemoteATCommandResponse = 0x97;
+    /// <summary>
+    /// Route Record Indicator
+    /// </summary>
+    public const byte RouteRecordIndicator = 0xA1;
+    /// <summary>
+    /// Extended Transmit Status
+    /// </summary>
+    public const byte ExtendedTransmitStatus = 0x8B;
+    /// <summary>
     /// Start byte indicating beginning of packet.
     /// </summary>
     public const byte StartByte = 0x7E;

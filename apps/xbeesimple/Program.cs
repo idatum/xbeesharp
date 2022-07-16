@@ -17,7 +17,7 @@ while (true)
         {
             continue;
         }
-        if (xbeeFrame.FrameType == XbeeBasePacket.PacketTypeReceive)
+        if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
         {
             XbeeReceivePacket? receivePacket;
             if (!XbeeReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
@@ -31,7 +31,7 @@ while (true)
             var data = Encoding.Default.GetString(receivePacket.ReceiveData.ToArray());
             Console.WriteLine($"RX packet {optionText} from {sourceAddress}: {data}");
         }
-        else if (xbeeFrame.FrameType == XbeeBasePacket.PacketTypeReceiveIO)
+        else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
         {
             XbeeReceiveIOPacket? receivePacket;
             if (!XbeeReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
@@ -41,10 +41,9 @@ while (true)
             }
             var optionText = receivePacket.ReceiveOptions == 1 ? "with response" : "broadcast";
             var sourceAddress = XbeeAddress.Create(receivePacket.SourceAddress).AsString();
-            var sampleCount = receivePacket.sampleCount;
             var analogMask = receivePacket.AnalogChannelMask;
             var digitalMask = receivePacket.DigitalChannelMask;
-            Console.WriteLine($"RX IO {optionText} from {sourceAddress}, sample count {sampleCount}: analog mask: {analogMask:X2}, digital mask {digitalMask:X4}");
+            Console.WriteLine($"RX IO {optionText} from {sourceAddress}: analog mask: {analogMask:X2}, digital mask {digitalMask:X4}");
         }
         else
         {

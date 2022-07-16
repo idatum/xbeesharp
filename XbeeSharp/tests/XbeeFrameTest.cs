@@ -164,4 +164,20 @@ public class XbeeFrameTest
             Xunit.Assert.Equal(calculatedChecksum, xbeeFrame.FrameChecksumSum);
         }
     }
+
+    [Fact]
+    public void FrameTypeUnscaped()
+    {
+        var xbeeFrame = new XbeeFrame(new List<byte>(ValidRXPacket), true);
+        Xunit.Assert.NotNull(xbeeFrame.FrameData);
+        Xunit.Assert.Equal(XbeeBasePacket.PacketTypeReceive, xbeeFrame.FrameType);
+    }
+
+    [Fact]
+    public void FrameTypeEscaped()
+    {
+        var xbeeFrame = new XbeeFrame(new List<byte>(EscapedTXPacket), true);
+        Xunit.Assert.NotNull(xbeeFrame.FrameData);
+        Xunit.Assert.Equal(XbeeBasePacket.PacketTypeTransmit, xbeeFrame.FrameType);
+    }
 }

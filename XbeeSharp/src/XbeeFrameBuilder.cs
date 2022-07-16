@@ -36,7 +36,7 @@ public class XbeeFrameBuilder
     /// </summary>
     public static byte CalculateChecksum(IReadOnlyList<byte> data, bool escaped)
     {
-        var dataOffset = GetDataOffset(data, escaped);
+        var dataOffset = XbeeFrame.GetDataOffset(data, escaped);
         int total = 0;
         bool nextByteEscaped = false;
         for (var i = dataOffset; i < data.Count; ++i)
@@ -67,7 +67,7 @@ public class XbeeFrameBuilder
     /// </summary>
     public static bool ChecksumValid(IReadOnlyList<byte> data, bool escaped)
     {
-        var dataOffset = GetDataOffset(data, escaped);
+        var dataOffset = XbeeFrame.GetDataOffset(data, escaped);
         var checksum = data[data.Count - 1];
         int total = 0;
         bool nextByteEscaped = false;
@@ -185,7 +185,7 @@ public class XbeeFrameBuilder
     {
         get
         {
-            var dataOffset = GetDataOffset(_data, _escaped);
+            var dataOffset = XbeeFrame.GetDataOffset(_data, _escaped);
             if (_data.Count < dataOffset)
             {
                 return false;
@@ -249,42 +249,5 @@ public class XbeeFrameBuilder
         var dataLen = (ushort)(dataLenHi * 0xFF + dataLenLo);
 
         return dataLen;
-    }
-
-    /// <summary>
-    /// Find offset of start of frame data (first byte after length).
-    /// </summary>
-    private static int GetDataOffset(IReadOnlyList<byte> data, bool escaped)
-    {
-        if (!escaped || data.Count < 3)
-        {
-            return 3;
-        }
-        // Start at first data length byte.
-        var dataOffset = 1;
-        if (data[dataOffset] == XbeeFrame.EscapeByte)
-        {
-            // Skip escape byte.
-            ++dataOffset;
-            if (dataOffset >= data.Count)
-            {
-                return dataOffset + 1;
-            }
-        }
-        // Move to second data length byte.
-        ++ dataOffset;
-        if (data[dataOffset] == XbeeFrame.EscapeByte)
-        {
-            // Skip escape byte.
-            ++dataOffset;
-            if (dataOffset >= data.Count)
-            {
-                return dataOffset;
-            }
-        }
-        // Move to beginning of data.
-        ++dataOffset;
-
-        return dataOffset;
     }
 }

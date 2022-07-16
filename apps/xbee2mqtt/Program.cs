@@ -135,7 +135,7 @@ class Program
                 {
                     var splitTopic = e.ApplicationMessage.Topic.Split('/');
                     var address = splitTopic[splitTopic.Length - 1];
-                    // Payload first byte is AT command, remaining are parameter value.
+                    // Payload first two byte are AT command (e.g. D0), remaining are parameter value (e.g. 0x00 0x05).
                     var command = new byte [] {e.ApplicationMessage.Payload[0], e.ApplicationMessage.Payload[1]};
                     var parameterValue = new List<byte>(e.ApplicationMessage.Payload).GetRange(2, e.ApplicationMessage.Payload.Length - 2);
                     var xbeeAddress = XbeeAddress.Create(address);

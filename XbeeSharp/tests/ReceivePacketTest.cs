@@ -35,10 +35,10 @@ public class ReceivePacketTests
     {
         XbeeFrame? xbeeFrame = CreateFrameFromBuilder(ValidRXPacket, false);
         Xunit.Assert.NotNull(xbeeFrame);
-        XbeeReceivePacket? packet;
+        ReceivePacket? packet;
         if (xbeeFrame != null)
         {
-            Xunit.Assert.True(XbeeReceivePacket.Parse(out packet, xbeeFrame));
+            Xunit.Assert.True(ReceivePacket.Parse(out packet, xbeeFrame));
             if (packet != null)
             {
                 Xunit.Assert.Equal(XbeeFrame.PacketTypeReceive, xbeeFrame.FrameType);

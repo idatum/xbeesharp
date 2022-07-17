@@ -19,8 +19,8 @@ while (true)
         }
         if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
         {
-            XbeeReceivePacket? receivePacket;
-            if (!XbeeReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+            ReceivePacket? receivePacket;
+            if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
             {
                 Console.WriteLine("Invalid receive packet.");
                 continue;
@@ -33,8 +33,8 @@ while (true)
         }
         else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
         {
-            XbeeReceiveIOPacket? receivePacket;
-            if (!XbeeReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+            ReceiveIOPacket? receivePacket;
+            if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
             {
                 Console.WriteLine("Invalid receive IO packet.");
                 continue;

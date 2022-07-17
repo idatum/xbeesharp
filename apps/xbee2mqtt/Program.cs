@@ -125,9 +125,9 @@ class Program
                     var splitTopic = e.ApplicationMessage.Topic.Split('/');
                     var address = splitTopic[splitTopic.Length - 1];
                     var xbeeAddress = XbeeAddress.Create(address);
-                    if (!XbeeTransmitPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, e.ApplicationMessage.Payload, escaped))
+                    if (!TransmitPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, e.ApplicationMessage.Payload, escaped))
                     {
-                        _tracing.Error("Could not create XbeeFrame.");
+                        _tracing.Error("Could not create transmit packet.");
                         return;
                     }
                 }
@@ -139,9 +139,9 @@ class Program
                     var command = new byte [] {e.ApplicationMessage.Payload[0], e.ApplicationMessage.Payload[1]};
                     var parameterValue = new List<byte>(e.ApplicationMessage.Payload).GetRange(2, e.ApplicationMessage.Payload.Length - 2);
                     var xbeeAddress = XbeeAddress.Create(address);
-                    if (!XbeeRemoteATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, command, parameterValue, escaped))
+                    if (!RemoteATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, command, parameterValue, escaped))
                     {
-                        _tracing.Error("Could not create XbeeFrame.");
+                        _tracing.Error("Could not create remote AT packet.");
                         return;
                     }
                 }
@@ -160,10 +160,10 @@ class Program
             {
                 _tracing.Error(ex.ToString());
             }
-            _tracing.Debug($"+ Topic = {e.ApplicationMessage.Topic}");
-            _tracing.Debug($"+ Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
-            _tracing.Debug($"+ QoS = {e.ApplicationMessage.QualityOfServiceLevel}");
-            _tracing.Debug($"+ Retain = {e.ApplicationMessage.Retain}");
+            _tracing.Debug($"Topic = {e.ApplicationMessage.Topic}");
+            _tracing.Debug($"Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
+            _tracing.Debug($"QoS = {e.ApplicationMessage.QualityOfServiceLevel}");
+            _tracing.Debug($"Retain = {e.ApplicationMessage.Retain}");
         });
 
         while (true)
@@ -178,8 +178,8 @@ class Program
                 }
                 if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
                 {
-                    XbeeReceivePacket? receivePacket;
-                    if (!XbeeReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+                    ReceivePacket? receivePacket;
+                    if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
                     {
                         _tracing.Error("Invalid receive packet.");
                         continue;
@@ -200,8 +200,8 @@ class Program
                 }
                 else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
                 {
-                    XbeeReceiveIOPacket? receivePacket;
-                    if (!XbeeReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+                    ReceiveIOPacket? receivePacket;
+                    if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
                     {
                         _tracing.Error("Invalid receive IO packet.");
                         continue;

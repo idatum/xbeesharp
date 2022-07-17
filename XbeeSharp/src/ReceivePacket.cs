@@ -3,7 +3,7 @@ namespace XbeeSharp;
 /// <summary>
 /// Recieve packet.
 /// </summary>
-public class XbeeReceivePacket : XbeeBasePacket
+public class ReceivePacket : XbeeBasePacket
 {
     /// <summary>
     /// Receive data.
@@ -13,7 +13,7 @@ public class XbeeReceivePacket : XbeeBasePacket
     /// <summary>
     /// Construct receive packet.
     /// </summary>
-    private XbeeReceivePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
+    private ReceivePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
                                 byte receiveOptions,
                                 IReadOnlyList<byte> receiveData)
                                 : base(xbeeFrame, sourceAddress, receiveOptions)
@@ -24,7 +24,7 @@ public class XbeeReceivePacket : XbeeBasePacket
     /// <summary>
     /// Create receive packet from XBee frame.
     /// </summary>
-    public static bool Parse(out XbeeReceivePacket? packet, XbeeFrame xbeeFrame)
+    public static bool Parse(out ReceivePacket? packet, XbeeFrame xbeeFrame)
     {
         packet = null;
         const int DataOffset = 15;
@@ -46,7 +46,7 @@ public class XbeeReceivePacket : XbeeBasePacket
         // 15 byte offset; length is data frame length - 15 byte offset + start byte + 2 length bytes.
         var receiveData = frameData.GetRange(DataOffset, xbeeFrame.FrameDataLength - DataOffset + 3);
 
-        packet = new XbeeReceivePacket(xbeeFrame, sourceAddress, receiveOption, receiveData);
+        packet = new ReceivePacket(xbeeFrame, sourceAddress, receiveOption, receiveData);
 
         return true;
     }

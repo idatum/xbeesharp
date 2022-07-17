@@ -40,7 +40,7 @@ public class RemoteATPacketTest
     public void PinOnPacketEscaped()
     {
         XbeeFrame? xbeeFrame;
-        Xunit.Assert.True(XbeeRemoteATPacket.CreateXbeeFrame(out xbeeFrame, Address, new byte [] {0x44, 0x30}, new byte [] {0x00, 0x05}, true));
+        Xunit.Assert.True(RemoteATPacket.CreateXbeeFrame(out xbeeFrame, Address, new byte [] {0x44, 0x30}, new byte [] {0x00, 0x05}, true));
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
         {

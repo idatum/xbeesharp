@@ -3,7 +3,7 @@ namespace XbeeSharp;
 /// <summary>
 /// Sample IO frame.
 /// </summary>
-public class XbeeReceiveIOPacket : XbeeBasePacket
+public class ReceiveIOPacket : XbeeBasePacket
 {
     /// <summary>
     /// Digital sample mask.
@@ -25,7 +25,7 @@ public class XbeeReceiveIOPacket : XbeeBasePacket
     /// <summary>
     /// Construct IO sample packet.
     /// </summary>
-    private XbeeReceiveIOPacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
+    private ReceiveIOPacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
                                 byte receiveOptions,
                                 ushort digitalChannelMask, byte analogChannelMask,
                                 IReadOnlyList<string> digitalSamples, IReadOnlyList<string> analogSamples)
@@ -40,7 +40,7 @@ public class XbeeReceiveIOPacket : XbeeBasePacket
     /// <summary>
     /// Create IO sample packet from XBee frame.
     /// </summary>
-    public static bool Parse(out XbeeReceiveIOPacket? packet, XbeeFrame xbeeFrame)
+    public static bool Parse(out ReceiveIOPacket? packet, XbeeFrame xbeeFrame)
     {
         packet = null;
         const int DataOffset = 15;
@@ -95,9 +95,9 @@ public class XbeeReceiveIOPacket : XbeeBasePacket
             }
         }
 
-        packet = new XbeeReceiveIOPacket(xbeeFrame, sourceAddress, receiveOption,
-                                            digitalChannelMask, analogChannelMask,
-                                            digitalSamples, analogSamples);
+        packet = new ReceiveIOPacket(xbeeFrame, sourceAddress, receiveOption,
+                                        digitalChannelMask, analogChannelMask,
+                                        digitalSamples, analogSamples);
 
         return true;
     }

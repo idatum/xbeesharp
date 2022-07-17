@@ -8,7 +8,7 @@ public class XbeeFrameBuilder
     /// <summary>
     /// Packet data.
     /// </summary>
-    private List<byte> _data = new List<byte>();
+    private List<byte> _data = new();
     /// <summary>
     /// Whether to expect escape byte in data.
     /// </summary>

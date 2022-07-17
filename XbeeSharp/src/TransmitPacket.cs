@@ -3,7 +3,7 @@ namespace XbeeSharp;
 /// <summary>
 /// Transmit request packet.
 /// </summary>
-public static class XbeeTransmitPacket
+public static class TransmitPacket
 {
     /// <summary>
     /// Create underlying XBee frame.
@@ -17,7 +17,7 @@ public static class XbeeTransmitPacket
         }
         xbeeFrame = null;
         ushort dataLen = 0;
-        List<byte> frameData = new List<byte>();
+        var frameData = new List<byte>();
         // Packet type
         frameData.Add(XbeeFrame.PacketTypeTransmit);
         ++dataLen;
@@ -49,7 +49,7 @@ public static class XbeeTransmitPacket
             ++dataLen;
         }
         // Fill remaing frame bytes.
-        // Start byte and big endian data length (includes escaped bytes).
+        // Start byte and big endian data length (includes escape bytes).
         byte dataLenHi = (byte)(dataLen >> 8);
         byte dataLenLo = (byte)(dataLen & 0xFF);
         List<byte> prefix = new List<byte>();

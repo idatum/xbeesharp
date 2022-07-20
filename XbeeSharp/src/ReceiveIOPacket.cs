@@ -6,6 +6,10 @@ namespace XbeeSharp;
 public class ReceiveIOPacket : XbeeBasePacket
 {
     /// <summary>
+    /// Network address.
+    /// </summary>
+    private ushort _networkAddress;
+    /// <summary>
     /// Digital sample mask.
     /// </summary>
     private ushort _digitalChannelMask;
@@ -16,21 +20,22 @@ public class ReceiveIOPacket : XbeeBasePacket
     /// <summary>
     /// Digital samples.
     /// </summary>
-    private IReadOnlyList<string> _digitalSamples;
+    private IReadOnlyList<(int Dio, bool Value)> _digitalSamples;
     /// <summary>
     /// Analog samples.
     /// </summary>
-    private IReadOnlyList<string> _analogSamples;
+    private IReadOnlyList<(int Adc, ushort Value)> _analogSamples;
 
     /// <summary>
     /// Construct IO sample packet.
     /// </summary>
     private ReceiveIOPacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
-                                byte receiveOptions,
+                                ushort networkAddress, byte receiveOptions,
                                 ushort digitalChannelMask, byte analogChannelMask,
-                                IReadOnlyList<string> digitalSamples, IReadOnlyList<string> analogSamples)
+                                IReadOnlyList<(int Dio, bool Value)> digitalSamples, IReadOnlyList<(int Adc, ushort Value)> analogSamples)
                                 : base(xbeeFrame, sourceAddress, receiveOptions)
     {
+        _networkAddress = networkAddress;
         _digitalChannelMask = digitalChannelMask;
         _analogChannelMask = analogChannelMask;
         _digitalSamples = digitalSamples;
@@ -53,51 +58,51 @@ public class ReceiveIOPacket : XbeeBasePacket
         // 64-bit source address.
         var sourceAddress = frameData.GetRange(4, 8);
         // 16-bit source network address.
-        var networkAddress = frameData.GetRange(12, 2);
+        var networkAddress = (ushort)(256 * frameData[12] + frameData[13]);
         // Receive option.
-        var receiveOption = frameData[14];
+        var receiveOptions = frameData[14];
         // Sample sets count.
         var sampleCount = frameData[15];
         // Digital channel mask bytes.
         // 1st byte: x x x D12 D11 D10 x x
         // 2nd byte: D7 D6 D4 D3 D2 D1 D0
-        ushort digitalChannelMask = (ushort)(0xff * frameData[16] + frameData[17]);
+        ushort digitalChannelMask = (ushort)(256 * frameData[16] + frameData[17]);
         // Analog channel mask byte: x x x A3 A2 A1 A0
         byte analogChannelMask = frameData[18];
         // Extract sample pairs.
         // Digital samples.
-        var digitalSamples = new List<string>();
-        ushort digitalValues = digitalChannelMask > 0 ? (ushort)(frameData[19] * 0xFF + frameData[20]) : (ushort)0;
+        var digitalSamples = new List<(int Dio, bool Value)>();
+        ushort digitalValues = digitalChannelMask > 0 ? (ushort)(256 * frameData[19] + frameData[20]) : (ushort)0;
         for (var i = 0; i < 15; ++i)
         {
             var mask = ((ushort)1 << i) & digitalChannelMask;
             if (mask > 0)
             {
-                int bitVal = (digitalValues & mask) > 0 ? 1 : 0;
+                bool bitVal = (digitalValues & mask) > 0 ? true : false;
                 {
-                    var sample = $"DIO{i}={bitVal}";
+                    var sample = (Dio: i, Value: bitVal);
                     digitalSamples.Add(sample);
                 }
             }
         }
         // Analog samples
-        var analogSamples = new List<string>();
+        var analogSamples = new List<(int Adc, ushort Value)>();
         var analogOffset = digitalSamples.Count > 0 ? 22 : 19;
         foreach (var i in new int [] {0, 1, 2, 3, 7})
         {
             var mask = 0x01 << i;
             if (0 != (mask & analogChannelMask))
             {
-                var adcVal = frameData[analogOffset];
-                var sample = i < 7 ? $"AD{i}={adcVal}" : $"V+={adcVal}";
+                ushort adcVal = frameData[analogOffset];
+                var sample = (Adc: i, Value: adcVal);
                 analogSamples.Add(sample);
                 analogOffset += 2;
             }
         }
 
-        packet = new ReceiveIOPacket(xbeeFrame, sourceAddress, receiveOption,
-                                        digitalChannelMask, analogChannelMask,
-                                        digitalSamples, analogSamples);
+        packet = new ReceiveIOPacket(xbeeFrame, sourceAddress, networkAddress, receiveOptions,
+                                     digitalChannelMask, analogChannelMask,
+                                     digitalSamples, analogSamples);
 
         return true;
     }
@@ -105,9 +110,14 @@ public class ReceiveIOPacket : XbeeBasePacket
     /// <summary>
     /// XBee frame indicator.
     /// </summary>
-    public byte FrameType
+    public const byte FrameType = XbeeFrame.PacketTypeReceiveIO;
+
+    /// <summary>
+    /// Network address.
+    /// </summary>
+    public ushort NetworkAddress
     {
-        get => XbeeFrame.PacketTypeReceiveIO;
+        get => _networkAddress;
     }
 
     /// <summary>
@@ -129,7 +139,7 @@ public class ReceiveIOPacket : XbeeBasePacket
     /// <summary>
     /// Digital samples.
     /// </summary>
-    public IReadOnlyList<string> DigitalSamples
+    public IReadOnlyList<(int Dio, bool Value)> DigitalSamples
     {
         get => _digitalSamples;
     }
@@ -137,7 +147,7 @@ public class ReceiveIOPacket : XbeeBasePacket
     /// <summary>
     /// Analog samples.
     /// </summary>
-    public IReadOnlyList<string> AnalogSamples
+    public IReadOnlyList<(int Adc, ushort Value)> AnalogSamples
     {
         get => _analogSamples;
     }

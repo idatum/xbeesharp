@@ -3,7 +3,7 @@ Initial .NET 6 C# implementation of [Digi XBee](https://www.digi.com/products/em
 
 Initial applications include [xbee2mqtt](https://github.com/idatum/xbeesharp/tree/main/apps/xbee2mqtt), which maps XBee receive packets to MQTT messages, as well as transmitting messages and remote AT commands from subscribed MQTT topics. It is implemented using [MQTTnet](https://github.com/dotnet/MQTTnet).
 
-I use XBee devices for remote sensors (e.g. weather station), remote displays, and to open and close my garage door. The XBee garage door device replaces Chamberlain's myQ and all of its issues. Here is an image the XBee opener in all its glory, spider webs included, hanging off my LiftMaster opener:
+I use XBee devices for remote sensors (e.g. weather station), remote displays, and to open and close my garage door. The XBee garage door device replaces Chamberlain's myQ and all of its issues. Here is an image of the XBee opener in all its glory, spider webs included, hanging off my LiftMaster opener:
 
 ![XBee garage door opener](assets/images/XBeeGarageOpener.png)
 

@@ -189,7 +189,7 @@ class Program
                     {
                         var optionText = receivePacket.ReceiveOptions == 1 ? "with response" : "broadcast";
                         var data = Encoding.Default.GetString(receivePacket.ReceiveData.ToArray());
-                        _tracing.Verbose($"RX packet {optionText} from {sourceAddress}: {data}");
+                        _tracing.Verbose($"RX packet {optionText} from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {data}");
                     }
                     var topic = $"{_rxTopic}/{sourceAddress}";
                     if (topic == null)
@@ -212,19 +212,20 @@ class Program
                         var sampleBuilder = new StringBuilder();
                         foreach (var dio in receivePacket.DigitalSamples)
                         {
-                            sampleBuilder.Append($"{dio} ");
+                            sampleBuilder.Append($"DIO{dio.Dio}={dio.Value} ");
                         }
                         foreach (var adc in receivePacket.AnalogSamples)
                         {
-                            sampleBuilder.Append($"{adc} ");
+                            sampleBuilder.Append($"AD{adc.Adc}={adc.Value:X4} ");
                         }
-                        _tracing.Info($"RX IO from {sourceAddress}: {sampleBuilder.ToString()}");
+                        var samples = sampleBuilder.ToString().Trim();
+                        _tracing.Info($"RX IO from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {samples}");
                         var topic = $"{_ioTopic}/{sourceAddress}";
                         if (topic == null)
                         {
                             throw new InvalidOperationException();
                         }
-                        await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes(sampleBuilder.ToString()));
+                        await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes(samples));
                     }
                 }
                 // Common known packet types not processed:
@@ -234,11 +235,28 @@ class Program
                 }
                 else if (xbeeFrame.FrameType == XbeeFrame.ExtendedTransmitStatus)
                 {
-                    _tracing.Debug("Skipping Extended Transmit Status packet.");
+                    ExtendedTransmitStatus? extendedTransmitStatus;
+                    if (!ExtendedTransmitStatus.Parse(out extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus == null)
+                    {
+                        _tracing.Error("Invalid extended receive status packet.");
+                        continue;
+                    }
+                    if (extendedTransmitStatus.DeliveryStatus != 0)
+                    {
+                        _tracing.Warning($"Extended transmit status error 0x{extendedTransmitStatus.DeliveryStatus:X2} from 0x{extendedTransmitStatus.NetworkAddress:X4}");
+                    }
+                    else
+                    {
+                        _tracing.Info($"Extended transmit status frame id = {extendedTransmitStatus.FrameId} from 0x{extendedTransmitStatus.NetworkAddress:X4}");
+                    }
                 }
                 else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
                 {
                     _tracing.Debug("Skipping Remote AT Command Response.");
+                }
+                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeNodeIdentification)
+                {
+                    _tracing.Debug("Skipping Node Identification Indicator.");
                 }
                 else
                 {

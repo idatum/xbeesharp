@@ -9,27 +9,6 @@ public class XbeeFrameTest
                                                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFE,
                                                                   0x00, 0x00, 0x7D, 0x31, XbeeFrame.EscapeByte, 0x33, XbeeFrame.EscapeByte, 0x5E, 0x51};
     
-    private XbeeFrame? CreateFrameFromBuilder(IReadOnlyList<byte> packet, bool escaped)
-    {
-        var xbeeFrameBuilder = new XbeeFrameBuilder(escaped);
-        Xunit.Assert.Equal(packet[0], XbeeFrame.StartByte);
-        XbeeFrame? xbeeFrame = null;
-        foreach (var nextByte in packet)
-        {
-            xbeeFrameBuilder.Append(nextByte);
-            if (xbeeFrameBuilder.FrameComplete)
-            {
-                if (!XbeeFrameBuilder.ChecksumValid(xbeeFrameBuilder.Data, escaped))
-                {
-                    throw new InvalidOperationException();
-                }
-                xbeeFrame = xbeeFrameBuilder.ToXbeeFrame();
-            }
-        }
-
-        return xbeeFrame;
-    }
-
     [Fact]
     public void XBeeFrameBuilderCtorEscaped()
     {
@@ -78,7 +57,7 @@ public class XbeeFrameTest
     [Fact]
     public void FullPacketChecksumBuilderEscaped()
     {
-        var xbeeFrame = CreateFrameFromBuilder(ValidRXPacket, true);
+        var xbeeFrame = XbeeTestUtils.CreateFrameFromBuilder(ValidRXPacket, true);
 
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
@@ -90,7 +69,7 @@ public class XbeeFrameTest
     [Fact]
     public void FullPacketChecksumBuilderUnescaped()
     {
-        var xbeeFrame = CreateFrameFromBuilder(ValidRXPacket, false);
+        var xbeeFrame = XbeeTestUtils.CreateFrameFromBuilder(ValidRXPacket, false);
 
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
@@ -105,7 +84,7 @@ public class XbeeFrameTest
         var invalidChecksumPacket = new List<byte>(ValidRXPacket);
         invalidChecksumPacket[invalidChecksumPacket.Count - 1] = 0x00;
 
-        Xunit.Assert.Throws<InvalidOperationException> (() => CreateFrameFromBuilder(invalidChecksumPacket, true));
+        Xunit.Assert.Throws<InvalidOperationException> (() => XbeeTestUtils.CreateFrameFromBuilder(invalidChecksumPacket, true));
     }
 
     [Fact]

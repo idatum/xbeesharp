@@ -8,31 +8,10 @@ public class RemoteATPacketTest
     static readonly byte[] PinOnFrameEscaped = {0x7E,0x00,0x7D,0x31,0x17,0x01,0x00,0x7D,0x33,0x01,0x02,0x03,0x04,0x05,0x06,
                                                 0xFF,0xFE,0x02,0x44,0x30,0x00,0x05,0x47};
 
-    private XbeeFrame? CreateFrameFromBuilder(IReadOnlyList<byte> packet, bool escaped)
-    {
-        var xbeeFrameBuilder = new XbeeFrameBuilder(escaped);
-        Xunit.Assert.Equal(packet[0], XbeeFrame.StartByte);
-        XbeeFrame? xbeeFrame = null;
-        foreach (var nextByte in packet)
-        {
-            xbeeFrameBuilder.Append(nextByte);
-            if (xbeeFrameBuilder.FrameComplete)
-            {
-                if (!XbeeFrameBuilder.ChecksumValid(xbeeFrameBuilder.Data, escaped))
-                {
-                    throw new InvalidOperationException();
-                }
-                xbeeFrame = xbeeFrameBuilder.ToXbeeFrame();
-            }
-        }
-
-        return xbeeFrame;
-    }
-
     [Fact]
     public void PinOnEscapedFrame()
     {
-        XbeeFrame? xbeeFrame = CreateFrameFromBuilder(PinOnFrameEscaped, true);
+        XbeeFrame? xbeeFrame = XbeeTestUtils.CreateFrameFromBuilder(PinOnFrameEscaped, true);
         Xunit.Assert.NotNull(xbeeFrame);
     }
 

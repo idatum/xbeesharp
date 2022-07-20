@@ -24,6 +24,10 @@ public class XbeeFrame
     /// </summary>
     public const byte PacketTypeReceiveIO = 0x92;
     /// <summary>
+    /// Node Identification Indicator.
+    /// </summary>
+    public const byte PacketTypeNodeIdentification = 0x95;
+    /// <summary>
     /// Remote AT Command Response.
     /// <summary>
     public const byte PacketTypeRemoteATCommandResponse = 0x97;
@@ -75,7 +79,7 @@ public class XbeeFrame
     {
         _frameData = frameData;
         // Big-endian
-        _frameDataLength = 0xff * frameData[1] + frameData[2];
+        _frameDataLength = 256 * frameData[1] + frameData[2];
         _checksum = frameData[frameData.Count - 1];
         _escaped = escaped;
     }

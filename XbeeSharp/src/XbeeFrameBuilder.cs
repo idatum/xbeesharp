@@ -229,7 +229,7 @@ public class XbeeFrameBuilder
     {
         if (!escaped)
         {
-            return (ushort)(data[1] * 0xFF + data[2]);
+            return (ushort)(256 * data[1] + data[2]);
         }
 
         byte dataLenHi = 0;
@@ -246,7 +246,7 @@ public class XbeeFrameBuilder
             ++dataLenOffset;
             dataLenLo = (byte)(0x20 ^ data[dataLenOffset]);
         }
-        var dataLen = (ushort)(dataLenHi * 0xFF + dataLenLo);
+        var dataLen = (ushort)(256 * dataLenHi + dataLenLo);
 
         return dataLen;
     }

@@ -6,6 +6,10 @@ namespace XbeeSharp;
 public class ReceivePacket : XbeeBasePacket
 {
     /// <summary>
+    /// Network address.
+    /// </summary>
+    private ushort _networkAddress;
+    /// <summary>
     /// Receive data.
     /// </summary>
     private IReadOnlyList<byte> _receiveData;
@@ -14,10 +18,11 @@ public class ReceivePacket : XbeeBasePacket
     /// Construct receive packet.
     /// </summary>
     private ReceivePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
-                                byte receiveOptions,
+                                ushort networkAddress, byte receiveOptions,
                                 IReadOnlyList<byte> receiveData)
                                 : base(xbeeFrame, sourceAddress, receiveOptions)
     {
+        _networkAddress = networkAddress;
         _receiveData = receiveData;
     }
 
@@ -29,7 +34,7 @@ public class ReceivePacket : XbeeBasePacket
         packet = null;
         const int DataOffset = 15;
 
-        if (xbeeFrame.FrameType != XbeeFrame.PacketTypeReceive ||
+        if (xbeeFrame.FrameType != ReceivePacket.FrameType ||
             xbeeFrame.FrameDataLength <= DataOffset)
         {
             return false;
@@ -38,15 +43,15 @@ public class ReceivePacket : XbeeBasePacket
         var frameData = new List<byte>(xbeeFrame.FrameData);
         // 64-bit source address.
         var sourceAddress = frameData.GetRange(4, 8);
-        // 16-bit source network address.
-        var networkAddress = frameData.GetRange(12, 2);
-        // Receive option.
-        var receiveOption = frameData[14];
+        // Network address.
+        ushort networkAddress = (ushort)(256 * frameData[12] + frameData[13]);
+        // Receive options.
+        var receiveOptions = frameData[14];
         // Receive data
         // 15 byte offset; length is data frame length - 15 byte offset + start byte + 2 length bytes.
         var receiveData = frameData.GetRange(DataOffset, xbeeFrame.FrameDataLength - DataOffset + 3);
 
-        packet = new ReceivePacket(xbeeFrame, sourceAddress, receiveOption, receiveData);
+        packet = new ReceivePacket(xbeeFrame, sourceAddress, networkAddress, receiveOptions, receiveData);
 
         return true;
     }
@@ -54,11 +59,16 @@ public class ReceivePacket : XbeeBasePacket
     /// <summary>
     /// XBee frame indicator.
     /// </summary>
-    public byte FrameType
-    {
-        get => XbeeFrame.PacketTypeReceive;
-    }
+    public const byte FrameType = XbeeFrame.PacketTypeReceive;
 
+    /// <summary>
+    /// Network address.
+    /// <summary>
+    public ushort NetworkAddress
+    {
+        get => _networkAddress;
+    }
+    
     /// <summary>
     /// Receive data.
     /// </summary>

@@ -110,6 +110,28 @@ public class ExtendedTransmitStatusPacket
 
     /// <summary>
     /// Delivery status.
+    /// From Digi documentation:
+    /// 0x00 = Success
+    /// 0x01 = MAC ACK failure
+    /// 0x02 = CCA/LBT failure
+    /// 0x03 = Indirect message unrequested / no spectrum available
+    /// 0x15 = Invalid destination endpoint
+    /// 0x21 = Network ACK failure
+    /// 0x22 = Not joined to network
+    /// 0x23 = Self-addressed
+    /// 0x24 = Address not found
+    /// 0x25 = Route not found
+    /// 0x26 = Broadcast source failed to hear a neighbor relay the message
+    /// 0x2B = Invalid binding table index
+    /// 0x2C = Resource error - lack of free buffers, timers, etc.
+    /// 0x2D = Attempted broadcast with APS transmission
+    /// 0x2E = Attempted unicast with APS transmission, but EE = 0
+    /// 0x31 = Internal resource error
+    /// 0x32 = Resource error lack of free buffers, timers, etc.
+    /// 0x34 = No Secure Session connection
+    /// 0x35 = Encryption failure
+    /// 0x74 = Data payload too large
+    /// 0x75 = Indirect message unrequested
     /// </summary>
     public byte DeliveryStatus
     {
@@ -118,6 +140,12 @@ public class ExtendedTransmitStatusPacket
 
     /// <summary>
     /// Discovery status.
+    /// From Digi documentation:
+    /// 0x00 = No discovery overhead
+    /// 0x01 = Zigbee address discovery
+    /// 0x02 = Route discovery
+    /// 0x03 = Zigbee address and route discovery
+    /// 0x40 = Zigbee end device extended timeout
     /// </summary>
     public byte DiscoveryStatus
     {

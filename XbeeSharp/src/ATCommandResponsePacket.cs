@@ -118,6 +118,16 @@ public class ATCommandResponsePacket
 
     /// <summary>
     /// Delivery status.
+    /// From Digi documentation:
+    /// 0x00 = OK
+    /// 0x01 = ERROR
+    /// 0x02 = Invalid command
+    /// 0x03 = Invalid parameter
+    /// 0x04 = Transmission failure
+    /// 0x0B = No Secure Session - Remote command access
+    ///        requires a secure session be established first
+    /// 0x0C = Encryption error
+    /// 0x0D = Command was sent insecurely
     /// </summary>
     public byte CommandStatus
     {

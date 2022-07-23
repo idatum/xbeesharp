@@ -253,7 +253,13 @@ class Program
                 }
                 else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeModemStatus)
                 {
-                    _tracing.Debug("Skipping Modem Status.");
+                    ModemStatusPacket? modemStatusPacket;
+                    if (!ModemStatusPacket.Parse(out modemStatusPacket, xbeeFrame) || modemStatusPacket == null)
+                    {
+                        _tracing.Error("Invalid modem status packet.");
+                        continue;
+                    }
+                    _tracing.Info($"Modem status = {modemStatusPacket.ModemStatus}");
                 }
                 else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
                 {

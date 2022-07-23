@@ -115,6 +115,9 @@ public class NodeIdentificationPacket : ReceiveBasePacket
 
     /// <summary>
     /// Network device type.
+    /// 0x00 = Coordinator
+    /// 0x01 = Router
+    /// 0x02 = End device
     /// </summary>
     public byte DeviceType
     {

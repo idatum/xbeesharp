@@ -1,7 +1,7 @@
 namespace XbeeSharp;
 
 /// <summary>
-/// Common ZigBee packet information.
+/// Common receive packet fields.
 /// </summary>
 public abstract class ReceiveBasePacket    
 {
@@ -16,7 +16,7 @@ public abstract class ReceiveBasePacket
     /// <summary>
     /// Network address.
     /// </summary>
-    private ushort _networkAddress;
+    protected ushort _networkAddress;
     /// <summary>
     /// Receive options bit field.
     /// </summary>
@@ -26,7 +26,7 @@ public abstract class ReceiveBasePacket
     /// </summary>
 
     /// <summary>
-    /// Construct ZigBee packet.
+    /// Constructor.
     /// </summary>
     protected ReceiveBasePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
                                 ushort networkAddress, byte receiveOptions)

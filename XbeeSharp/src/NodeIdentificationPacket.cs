@@ -3,7 +3,7 @@ namespace XbeeSharp;
 using System.Text;
 
 /// <summary>
-/// Extended transmit status packet.
+/// Node identification indicator packet.
 /// </summary>
 public class NodeIdentificationPacket : ReceiveBasePacket
 {
@@ -28,6 +28,9 @@ public class NodeIdentificationPacket : ReceiveBasePacket
     /// </summary>
     private byte _deviceType;
 
+    /// <summary>
+    /// Constructor.
+    /// </summary>
     private NodeIdentificationPacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
                                      ushort networkAddress, byte options,
                                      ushort remoteNetworkAddress, IReadOnlyList<byte> remoteSourceAddress,
@@ -42,7 +45,7 @@ public class NodeIdentificationPacket : ReceiveBasePacket
     }
 
     /// <summary>
-    /// Create receive packet from XBee frame.
+    /// Create from XBee frame.
     /// </summary>
     public static bool Parse(out NodeIdentificationPacket? packet, XbeeFrame xbeeFrame)
     {
@@ -55,11 +58,11 @@ public class NodeIdentificationPacket : ReceiveBasePacket
         // 64-bit source address.
         var sourceAddress = xbeeFrame.FrameData.Take(4..12).ToList();
         // Network address.
-        ushort networkAddress = (ushort)(256 * xbeeFrame.FrameData[12] + xbeeFrame.FrameData[13]);
+        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[12], xbeeFrame.FrameData[13]);
         // Options.
         byte options = xbeeFrame.FrameData[14];
         // Remote network address.
-        ushort remoteNetworkAddress = (ushort)(256 * xbeeFrame.FrameData[15] + xbeeFrame.FrameData[16]);
+        ushort remoteNetworkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[15], xbeeFrame.FrameData[16]);
         // Remote source address.
         var remoteSourceAddress = xbeeFrame.FrameData.Take(17..25).ToList();
         // Node identifier string.

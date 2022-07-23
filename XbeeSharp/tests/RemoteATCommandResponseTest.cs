@@ -15,8 +15,8 @@ public class RemoteATCommandResponseTest
         if (xbeeFrame != null)
         {
             Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.FrameData, false));
-            RemoteATCommandResponse? packet;
-            Xunit.Assert.True(RemoteATCommandResponse.Parse(out packet, xbeeFrame));
+            ATCommandResponsePacket? packet;
+            Xunit.Assert.True(ATCommandResponsePacket.Parse(out packet, xbeeFrame));
             Xunit.Assert.NotNull(packet);
             if (packet != null)
             {
@@ -37,8 +37,8 @@ public class RemoteATCommandResponseTest
         if (xbeeFrame != null)
         {
             Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.FrameData, false));
-            RemoteATCommandResponse? packet;
-            Xunit.Assert.True(RemoteATCommandResponse.Parse(out packet, xbeeFrame));
+            ATCommandResponsePacket? packet;
+            Xunit.Assert.True(ATCommandResponsePacket.Parse(out packet, xbeeFrame));
             Xunit.Assert.NotNull(packet);
             if (packet != null)
             {

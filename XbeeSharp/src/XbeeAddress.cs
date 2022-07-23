@@ -13,7 +13,7 @@ public class XbeeAddress
     private IReadOnlyList<byte> _address;
 
     /// <summary>
-    /// Construct from bytes.
+    /// Constructor.
     /// </summary>
     private XbeeAddress(IReadOnlyList<byte> address)
     {

@@ -30,7 +30,7 @@ public static class TransmitPacket
             XbeeFrameBuilder.AppendWithEscape(escaped, frameData, b);
             ++dataLen;
         }
-        // short address.
+        // Network address.
         foreach (var b in new byte[] {0xFF, 0xFE})
         {
             frameData.Add(b);
@@ -49,7 +49,7 @@ public static class TransmitPacket
             ++dataLen;
         }
         // Fill remaing frame bytes.
-        // Start byte and big endian data length (includes escape bytes).
+        // Start byte and big endian data length.
         byte dataLenHi = (byte)(dataLen >> 8);
         byte dataLenLo = (byte)(dataLen & 0xFF);
         List<byte> prefix = new List<byte>();

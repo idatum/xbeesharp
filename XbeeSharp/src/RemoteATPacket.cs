@@ -1,7 +1,7 @@
 namespace XbeeSharp;
 
 /// <summary>
-/// Transmit request packet.
+/// Remote AT command request packet.
 /// </summary>
 public static class RemoteATPacket
 {

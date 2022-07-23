@@ -11,7 +11,7 @@ public class ReceivePacket : ReceiveBasePacket
     private IReadOnlyList<byte> _receiveData;
 
     /// <summary>
-    /// Construct receive packet.
+    /// Constructor.
     /// </summary>
     private ReceivePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
                                 ushort networkAddress, byte receiveOptions,
@@ -22,7 +22,7 @@ public class ReceivePacket : ReceiveBasePacket
     }
 
     /// <summary>
-    /// Create receive packet from XBee frame.
+    /// Create from XBee frame.
     /// </summary>
     public static bool Parse(out ReceivePacket? packet, XbeeFrame xbeeFrame)
     {
@@ -38,7 +38,7 @@ public class ReceivePacket : ReceiveBasePacket
         // 64-bit source address.
         var sourceAddress = xbeeFrame.FrameData.Take(4..12).ToList();
         // Network address.
-        ushort networkAddress = (ushort)(256 * xbeeFrame.FrameData[12] + xbeeFrame.FrameData[13]);
+        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[12], xbeeFrame.FrameData[13]);
         // Receive options.
         var receiveOptions = xbeeFrame.FrameData[14];
         // Receive data

@@ -1,12 +1,12 @@
 namespace XbeeSharp;
 
 /// <summary>
-/// XBee packet builder.
+/// XBee frame builder.
 /// </summary>
 public class XbeeFrameBuilder
 {
     /// <summary>
-    /// Packet data.
+    /// Frame data.
     /// </summary>
     private List<byte> _data = new();
     /// <summary>
@@ -96,7 +96,7 @@ public class XbeeFrameBuilder
     }
 
     /// <summary>
-    /// Escape if needed.
+    /// Append byte; escape if needed.
     /// </summary>
     public static bool AppendWithEscape(bool escaped, IList<byte> frameData, byte b)
     {
@@ -125,6 +125,14 @@ public class XbeeFrameBuilder
     }
 
     /// <summary>
+    /// Helper to create a ushort from big-endian byte sequence.
+    /// </summary>
+    public static ushort ToBigEndian(byte hi, byte lo)
+    {
+        return (ushort)((hi << 8) + lo);
+    }
+
+    /// <summary>
     /// Whether to expect escape byte in data.
     /// </summary>
     public bool Escaped
@@ -135,7 +143,7 @@ public class XbeeFrameBuilder
 
     /// <summary>
     /// Add next received byte in construction of packet.
-    /// Frame field bytes:
+    /// Frame field bytes (unescaped):
     /// 1 - Start delimiter (0x7E)
     /// 2,3 - Length (big-endian)
     /// 4,n - API-specific structure of size n
@@ -229,7 +237,7 @@ public class XbeeFrameBuilder
     {
         if (!escaped)
         {
-            return (ushort)(256 * data[1] + data[2]);
+            return XbeeFrameBuilder.ToBigEndian(data[1], data[2]);
         }
 
         byte dataLenHi = 0;
@@ -246,7 +254,7 @@ public class XbeeFrameBuilder
             ++dataLenOffset;
             dataLenLo = (byte)(0x20 ^ data[dataLenOffset]);
         }
-        var dataLen = (ushort)(256 * dataLenHi + dataLenLo);
+        var dataLen = XbeeFrameBuilder.ToBigEndian(dataLenHi, dataLenLo);
 
         return dataLen;
     }

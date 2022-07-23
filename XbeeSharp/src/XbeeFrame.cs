@@ -83,7 +83,7 @@ public class XbeeFrame
     {
         _frameData = frameData;
         // Big-endian
-        _frameDataLength = 256 * frameData[1] + frameData[2];
+        _frameDataLength = XbeeFrameBuilder.ToBigEndian(frameData[1], frameData[2]);
         _checksum = frameData[frameData.Count - 1];
         _escaped = escaped;
     }
@@ -126,7 +126,7 @@ public class XbeeFrame
     }
 
     /// <summary>
-    /// Whether escaped packet.
+    /// Whether there were escaped bytes.
     /// </summary>
     public bool Escaped
     {
@@ -134,7 +134,7 @@ public class XbeeFrame
     }
     
     /// <summary>
-    /// Packet data.
+    /// Frame data.
     /// </summary>
     public IReadOnlyList<byte> FrameData
     {
@@ -142,7 +142,7 @@ public class XbeeFrame
     }
 
     /// <summary>
-    /// Packet type.
+    /// Frame type.
     /// </summary>
     public byte FrameType
     {
@@ -161,15 +161,15 @@ public class XbeeFrame
     }
 
     /// <summary>
-    /// Checksum.
+    /// Frame checksum.
     /// </summary>
-    public byte FrameChecksumSum
+    public byte FrameChecksum
     {
         get => _checksum;
     }
 
     /// <summary>
-    /// Packet data length.
+    /// Frame data length.
     /// </summary>
     public int FrameDataLength
     {

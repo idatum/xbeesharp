@@ -1,9 +1,9 @@
 namespace XbeeSharp;
 
 /// <summary>
-/// Extended transmit status packet.
+/// Remote AT command response packet.
 /// </summary>
-public class RemoteATCommandResponse
+public class ATCommandResponsePacket
 {
     /// <summary>
     /// Underlying XBee frame.
@@ -29,10 +29,11 @@ public class RemoteATCommandResponse
     /// Delivery status.
     /// </summary>
     private byte _commandStatus;
+
     /// <summary>
-    /// Construct receive packet.
+    /// Constructor.
     /// </summary>
-    private RemoteATCommandResponse(XbeeFrame xbeeFrame, byte frameId, IReadOnlyList<byte> sourceAddress,
+    private ATCommandResponsePacket(XbeeFrame xbeeFrame, byte frameId, IReadOnlyList<byte> sourceAddress,
                                     ushort networkAddress, string command, byte commandStatus)
     {
         _xbeeFrame = xbeeFrame;
@@ -44,9 +45,9 @@ public class RemoteATCommandResponse
     }
 
     /// <summary>
-    /// Create receive packet from XBee frame.
+    /// Create from XBee frame.
     /// </summary>
-    public static bool Parse(out RemoteATCommandResponse? packet, XbeeFrame xbeeFrame)
+    public static bool Parse(out ATCommandResponsePacket? packet, XbeeFrame xbeeFrame)
     {
         packet = null;
 
@@ -59,13 +60,13 @@ public class RemoteATCommandResponse
         // 64-bit source address.
         var sourceAddress = xbeeFrame.FrameData.Take(5..13).ToList();
         // Network address.
-        ushort networkAddress = (ushort)(256 * xbeeFrame.FrameData[13] + xbeeFrame.FrameData[14]);
+        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[13], xbeeFrame.FrameData[14]);
         // AT command.
         var command = new string(new char [] {(char)xbeeFrame.FrameData[15], (char)xbeeFrame.FrameData[16]});
         // Command status
         byte commandStatus = xbeeFrame.FrameData[17];
 
-        packet = new RemoteATCommandResponse(xbeeFrame, frameId, sourceAddress, networkAddress, command, commandStatus);
+        packet = new ATCommandResponsePacket(xbeeFrame, frameId, sourceAddress, networkAddress, command, commandStatus);
 
         return true;
     }

@@ -236,8 +236,8 @@ class Program
                 }
                 else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeExtendedTransmitStatus)
                 {
-                    ExtendedTransmitStatus? extendedTransmitStatus;
-                    if (!ExtendedTransmitStatus.Parse(out extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus == null)
+                    ExtendedTransmitStatusPacket? extendedTransmitStatus;
+                    if (!ExtendedTransmitStatusPacket.Parse(out extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus == null)
                     {
                         _tracing.Error("Invalid extended receive status packet.");
                         continue;
@@ -257,8 +257,8 @@ class Program
                 }
                 else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
                 {
-                    RemoteATCommandResponse? remoteATCommandResponse;
-                    if (!RemoteATCommandResponse.Parse(out remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse == null)
+                    ATCommandResponsePacket? remoteATCommandResponse;
+                    if (!ATCommandResponsePacket.Parse(out remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse == null)
                     {
                         _tracing.Error("Invalid remote AT response packet.");
                         continue;

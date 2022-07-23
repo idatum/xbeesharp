@@ -3,7 +3,7 @@ namespace XbeeSharp;
 /// <summary>
 /// Extended transmit status packet.
 /// </summary>
-public class ExtendedTransmitStatus
+public class ExtendedTransmitStatusPacket
 {
     /// <summary>
     /// Underlying XBee frame.
@@ -29,10 +29,11 @@ public class ExtendedTransmitStatus
     /// Discovery status.
     /// </summary>
     private byte _discoveryStatus;
+
     /// <summary>
-    /// Construct receive packet.
+    /// Constructor.
     /// </summary>
-    private ExtendedTransmitStatus(XbeeFrame xbeeFrame, byte frameId, ushort networkAddress,
+    private ExtendedTransmitStatusPacket(XbeeFrame xbeeFrame, byte frameId, ushort networkAddress,
                                    byte transmitRetryCount, byte deliveryStatus, byte discoveryStatus)
     {
         _xbeeFrame = xbeeFrame;
@@ -44,9 +45,9 @@ public class ExtendedTransmitStatus
     }
 
     /// <summary>
-    /// Create receive packet from XBee frame.
+    /// Create from XBee frame.
     /// </summary>
-    public static bool Parse(out ExtendedTransmitStatus? packet, XbeeFrame xbeeFrame)
+    public static bool Parse(out ExtendedTransmitStatusPacket? packet, XbeeFrame xbeeFrame)
     {
         packet = null;
 
@@ -57,7 +58,7 @@ public class ExtendedTransmitStatus
         // Frame ID.
         byte frameId = xbeeFrame.FrameData[4];
         // Network address.
-        ushort networkAddress = (ushort)(256 * xbeeFrame.FrameData[5] + xbeeFrame.FrameData[6]);
+        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[5], xbeeFrame.FrameData[6]);
         // Transmit retry count.
         byte transmitRetryCount = xbeeFrame.FrameData[7];
         // Delivery status.
@@ -65,7 +66,7 @@ public class ExtendedTransmitStatus
         // Discovery status.
         byte discoveryStatus = xbeeFrame.FrameData[9];
 
-        packet = new ExtendedTransmitStatus(xbeeFrame, frameId, networkAddress, transmitRetryCount, deliveryStatus, discoveryStatus);
+        packet = new ExtendedTransmitStatusPacket(xbeeFrame, frameId, networkAddress, transmitRetryCount, deliveryStatus, discoveryStatus);
 
         return true;
     }
@@ -82,6 +83,7 @@ public class ExtendedTransmitStatus
     {
         get => _xbeeFrame;
     }
+
     /// <summary>
     /// Frame ID.
     /// </summary>
@@ -89,6 +91,7 @@ public class ExtendedTransmitStatus
     {
         get => _frameId;
     }
+
     /// <summary>
     /// Network address.
     /// <summary>
@@ -96,6 +99,7 @@ public class ExtendedTransmitStatus
     {
         get => _networkAddress;
     }
+
     /// <summary>
     /// Transmit retry count.
     /// </summary>
@@ -103,6 +107,7 @@ public class ExtendedTransmitStatus
     {
         get => _transmitRetryCount;
     }
+
     /// <summary>
     /// Delivery status.
     /// </summary>
@@ -110,6 +115,7 @@ public class ExtendedTransmitStatus
     {
         get => _deliveryStatus;
     }
+
     /// <summary>
     /// Discovery status.
     /// </summary>

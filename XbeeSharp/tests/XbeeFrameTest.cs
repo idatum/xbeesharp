@@ -39,7 +39,7 @@ public class XbeeFrameTest
         var xbeeFrame = new XbeeFrame(new List<byte>(ValidRXPacket), false);
         Xunit.Assert.NotNull(xbeeFrame.FrameData);
         Xunit.Assert.Equal(0x1E, xbeeFrame.FrameDataLength);
-        Xunit.Assert.Equal(0x8A, xbeeFrame.FrameChecksumSum);
+        Xunit.Assert.Equal(0x8A, xbeeFrame.FrameChecksum);
         Xunit.Assert.Equal(xbeeFrame.FrameDataLength, ValidRXPacket.Length - 4);
     }
 
@@ -113,7 +113,7 @@ public class XbeeFrameTest
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
         {
-            Xunit.Assert.Equal(calculatedChecksum, xbeeFrame.FrameChecksumSum);
+            Xunit.Assert.Equal(calculatedChecksum, xbeeFrame.FrameChecksum);
         }
     }
 
@@ -140,7 +140,7 @@ public class XbeeFrameTest
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
         {
-            Xunit.Assert.Equal(calculatedChecksum, xbeeFrame.FrameChecksumSum);
+            Xunit.Assert.Equal(calculatedChecksum, xbeeFrame.FrameChecksum);
         }
     }
 

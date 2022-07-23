@@ -4,10 +4,10 @@ using System.Text;
 
 public class ReceivePacketTests
 {
-    private static readonly byte[] ValidRXPacket = new byte[] {XbeeFrame.StartByte, 0x00, 0x1E, 0x90, 0x00, 0x14, 0xA1, 0x00, 0x40, 0xC3, 0x54,
-                                                               0x9D, 0xF1, 0xA8, 0x02, 0x43, 0x3D, 0x32, 0x34, 0x2E, 0x39, 0x30, 0x26, 0x50,
-                                                               0x3D, 0x31, 0x30, 0x32, 0x37, 0x2E, 0x36, 0x36, 0x0D, 0x8A};
-    private const string ReceiveData = "C=24.90&P=1027.66\r";
+    private static readonly byte[] ValidRXPacket = new byte[] {0x7E, 0x00, 0x12, 0x90, 0x00, 0x13, 0xA2, 0x00, 0x87, 0x65,
+                                                               0x43, 0x21, 0x56, 0x14, 0x01, 0x54, 0x78, 0x44, 0x61, 0x74, 0x61, 0xB9};
+    private const string SourceAddress = "0x0013A20087654321";
+    private const string ReceiveData = "TxData";
     
     [Fact]
     public void ValidPacketUnescaped()
@@ -22,6 +22,7 @@ public class ReceivePacketTests
             {
                 Xunit.Assert.Equal(XbeeFrame.PacketTypeReceive, xbeeFrame.FrameType);
                 Xunit.Assert.Equal(ReceivePacket.FrameType, xbeeFrame.FrameType);
+                Xunit.Assert.Equal(SourceAddress, packet.SourceAddress.AsString());
                 Xunit.Assert.Equal(ReceiveData, Encoding.UTF8.GetString(packet.ReceiveData.ToArray()));
             }
         }

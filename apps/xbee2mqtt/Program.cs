@@ -24,6 +24,7 @@ class Program
     private static string _txTopic = String.Empty;
     private static string _atTopic = String.Empty;
     private static string _ioTopic = String.Empty;
+    private static string _niTopic = String.Empty;
 
     private static void OnPublisherConnected(MqttClientConnectedEventArgs x)
     {
@@ -184,7 +185,7 @@ class Program
                         _tracing.Error("Invalid receive packet.");
                         continue;
                     }
-                    var sourceAddress = XbeeAddress.Create(receivePacket.SourceAddress).AsString();
+                    var sourceAddress = receivePacket.SourceAddress.AsString();
                     if (_tracing.TraceLevel == TraceLevel.Verbose)
                     {
                         var optionText = receivePacket.ReceiveOptions == 1 ? "with response" : "broadcast";
@@ -206,7 +207,7 @@ class Program
                         _tracing.Error("Invalid receive IO packet.");
                         continue;
                     }
-                    var sourceAddress = XbeeAddress.Create(receivePacket.SourceAddress).AsString();
+                    var sourceAddress = receivePacket.SourceAddress.AsString();
                     if (_tracing.TraceLevel == TraceLevel.Verbose || _tracing.TraceLevel == TraceLevel.Info)
                     {
                         var sampleBuilder = new StringBuilder();
@@ -256,7 +257,38 @@ class Program
                 }
                 else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeNodeIdentification)
                 {
-                    _tracing.Debug("Skipping Node Identification Indicator.");
+                    NodeIdentificationPacket? nodeIdentificationPacket;
+                    if (!NodeIdentificationPacket.Parse(out nodeIdentificationPacket, xbeeFrame) || nodeIdentificationPacket == null)
+                    {
+                        _tracing.Error("Invalid node identification packet.");
+                        continue;
+                    }
+                    var remoteSourceAddress = nodeIdentificationPacket.RemoteSourceAddress.AsString();
+                    var networkAddress = $"0x{nodeIdentificationPacket.RemoteNetworkAddress:X4}";
+                    var nodeIdent = string.IsNullOrWhiteSpace(nodeIdentificationPacket.NodeIdentifier) ? String.Empty : nodeIdentificationPacket.NodeIdentifier.Trim();
+                    var deviceType = string.Empty;
+                    switch (nodeIdentificationPacket.DeviceType)
+                    {
+                        case 0x00:
+                            deviceType = "coordinator";
+                            break;
+                        case 0x01:
+                            deviceType = "router";
+                            break;
+                        case 0x02:
+                            deviceType = "end device";
+                            break;
+                        default:
+                            deviceType = $"{nodeIdentificationPacket.DeviceType:X2}";
+                            break;
+                    }
+                    _tracing.Info($"Node identification {nodeIdent} {deviceType}: {remoteSourceAddress} {networkAddress}");
+                    var topic = $"{_niTopic}/{nodeIdentificationPacket.RemoteSourceAddress.AsString()}";
+                    if (topic == null)
+                    {
+                        throw new InvalidOperationException();
+                    }
+                    await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes($"{deviceType} 0x{nodeIdentificationPacket.RemoteNetworkAddress:X4} {nodeIdent}"));
                 }
                 else
                 {
@@ -288,6 +320,7 @@ class Program
         _txTopic = _configuration["MQTT_TX_TOPIC"];
         _atTopic = _configuration["MQTT_AT_TOPIC"];
         _ioTopic = _configuration["MQTT_IO_TOPIC"];
+        _niTopic = _configuration["MQTT_NI_TOPIC"];
         if (String.IsNullOrEmpty(_rxTopic) || String.IsNullOrEmpty(_txTopic))
         {
             _tracing.Error("No MQTT topic defined.");

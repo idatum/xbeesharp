@@ -1,7 +1,7 @@
 namespace XbeeSharp;
 
 /// <summary>
-/// Recieve packet.
+/// Extended transmit status packet.
 /// </summary>
 public class ExtendedTransmitStatus
 {

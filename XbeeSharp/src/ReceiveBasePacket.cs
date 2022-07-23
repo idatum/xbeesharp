@@ -3,7 +3,7 @@ namespace XbeeSharp;
 /// <summary>
 /// Common ZigBee packet information.
 /// </summary>
-public abstract class XbeeBasePacket    
+public abstract class ReceiveBasePacket    
 {
     /// <summary>
     /// Underlying XBee frame.
@@ -12,7 +12,11 @@ public abstract class XbeeBasePacket
     /// <summary>
     /// 64bit source address.
     /// </summary>
-    protected IReadOnlyList<byte> _sourceAddress;
+    protected XbeeAddress _sourceAddress;
+    /// <summary>
+    /// Network address.
+    /// </summary>
+    private ushort _networkAddress;
     /// <summary>
     /// Receive options bit field.
     /// </summary>
@@ -24,11 +28,12 @@ public abstract class XbeeBasePacket
     /// <summary>
     /// Construct ZigBee packet.
     /// </summary>
-    protected XbeeBasePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
-                             byte receiveOptions)
+    protected ReceiveBasePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
+                                ushort networkAddress, byte receiveOptions)
     {
         _xbeeFrame = xbeeFrame;
-        _sourceAddress = sourceAddress;
+        _sourceAddress = XbeeAddress.Create(sourceAddress);
+        _networkAddress = networkAddress;
         _receiveOptions = receiveOptions;
     }
 
@@ -43,9 +48,17 @@ public abstract class XbeeBasePacket
     /// <summary>
     /// 64bit source address.
     /// </summary>
-    public IReadOnlyList<byte> SourceAddress
+    public XbeeAddress SourceAddress
     {
         get => _sourceAddress;
+    }
+
+    /// <summary>
+    /// Network address.
+    /// <summary>
+    public ushort NetworkAddress
+    {
+        get => _networkAddress;
     }
 
     /// <summary>

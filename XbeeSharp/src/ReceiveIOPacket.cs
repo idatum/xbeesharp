@@ -3,12 +3,8 @@ namespace XbeeSharp;
 /// <summary>
 /// Sample IO frame.
 /// </summary>
-public class ReceiveIOPacket : XbeeBasePacket
+public class ReceiveIOPacket : ReceiveBasePacket
 {
-    /// <summary>
-    /// Network address.
-    /// </summary>
-    private ushort _networkAddress;
     /// <summary>
     /// Digital sample mask.
     /// </summary>
@@ -33,9 +29,8 @@ public class ReceiveIOPacket : XbeeBasePacket
                                 ushort networkAddress, byte receiveOptions,
                                 ushort digitalChannelMask, byte analogChannelMask,
                                 IReadOnlyList<(int Dio, bool Value)> digitalSamples, IReadOnlyList<(int Adc, ushort Value)> analogSamples)
-                                : base(xbeeFrame, sourceAddress, receiveOptions)
+                                : base(xbeeFrame, sourceAddress, networkAddress, receiveOptions)
     {
-        _networkAddress = networkAddress;
         _digitalChannelMask = digitalChannelMask;
         _analogChannelMask = analogChannelMask;
         _digitalSamples = digitalSamples;
@@ -54,25 +49,23 @@ public class ReceiveIOPacket : XbeeBasePacket
         {
             return false;
         }
-        var frameData = new List<byte>(xbeeFrame.FrameData);
         // 64-bit source address.
-        var sourceAddress = frameData.GetRange(4, 8);
+        var sourceAddress = xbeeFrame.FrameData.Take(4..12).ToList();
         // 16-bit source network address.
-        var networkAddress = (ushort)(256 * frameData[12] + frameData[13]);
+        var networkAddress = (ushort)(256 * xbeeFrame.FrameData[12] + xbeeFrame.FrameData[13]);
         // Receive option.
-        var receiveOptions = frameData[14];
+        var receiveOptions = xbeeFrame.FrameData[14];
         // Sample sets count.
-        var sampleCount = frameData[15];
+        var sampleCount = xbeeFrame.FrameData[15];
         // Digital channel mask bytes.
         // 1st byte: x x x D12 D11 D10 x x
         // 2nd byte: D7 D6 D4 D3 D2 D1 D0
-        ushort digitalChannelMask = (ushort)(256 * frameData[16] + frameData[17]);
+        ushort digitalChannelMask = (ushort)(256 * xbeeFrame.FrameData[16] + xbeeFrame.FrameData[17]);
         // Analog channel mask byte: x x x A3 A2 A1 A0
-        byte analogChannelMask = frameData[18];
-        // Extract sample pairs.
+        byte analogChannelMask = xbeeFrame.FrameData[18];
         // Digital samples.
         var digitalSamples = new List<(int Dio, bool Value)>();
-        ushort digitalValues = digitalChannelMask > 0 ? (ushort)(256 * frameData[19] + frameData[20]) : (ushort)0;
+        ushort digitalValues = digitalChannelMask > 0 ? (ushort)(256 * xbeeFrame.FrameData[19] + xbeeFrame.FrameData[20]) : (ushort)0;
         for (var i = 0; i < 15; ++i)
         {
             var mask = ((ushort)1 << i) & digitalChannelMask;
@@ -87,13 +80,13 @@ public class ReceiveIOPacket : XbeeBasePacket
         }
         // Analog samples
         var analogSamples = new List<(int Adc, ushort Value)>();
-        var analogOffset = digitalSamples.Count > 0 ? 22 : 19;
+        var analogOffset = digitalSamples.Count > 0 ? 21 : 19;
         foreach (var i in new int [] {0, 1, 2, 3, 7})
         {
             var mask = 0x01 << i;
             if (0 != (mask & analogChannelMask))
             {
-                ushort adcVal = frameData[analogOffset];
+                ushort adcVal = (ushort)(256 * xbeeFrame.FrameData[analogOffset] + xbeeFrame.FrameData[analogOffset + 1]);
                 var sample = (Adc: i, Value: adcVal);
                 analogSamples.Add(sample);
                 analogOffset += 2;
@@ -111,14 +104,6 @@ public class ReceiveIOPacket : XbeeBasePacket
     /// XBee frame indicator.
     /// </summary>
     public const byte FrameType = XbeeFrame.PacketTypeReceiveIO;
-
-    /// <summary>
-    /// Network address.
-    /// </summary>
-    public ushort NetworkAddress
-    {
-        get => _networkAddress;
-    }
 
     /// <summary>
     /// Digital sample mask.

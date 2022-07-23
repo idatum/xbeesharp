@@ -14,7 +14,15 @@ public class XbeeFrame
     /// <summary>
     /// Remote AT Command Request
     /// </summary>
-    public const byte PacketRemoteAT = 0x17;
+    public const byte PacketTypeRemoteAT = 0x17;
+    /// <summary>
+    /// Modem status.
+    /// </summary>
+    public const byte PacketTypeModemStatus = 0x8A;
+    /// <summary>
+    /// Extended Transmit Status
+    /// </summary>
+    public const byte PacketTypeExtendedTransmitStatus = 0x8B;
     /// <summary>
     /// RX receive.
     /// </summary>
@@ -35,10 +43,6 @@ public class XbeeFrame
     /// Route Record Indicator
     /// </summary>
     public const byte RouteRecordIndicator = 0xA1;
-    /// <summary>
-    /// Extended Transmit Status
-    /// </summary>
-    public const byte ExtendedTransmitStatus = 0x8B;
     /// <summary>
     /// Start byte indicating beginning of packet.
     /// </summary>

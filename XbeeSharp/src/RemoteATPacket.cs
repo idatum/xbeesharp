@@ -19,7 +19,7 @@ public static class RemoteATPacket
         ushort dataLen = 0;
         var frameData = new List<byte>();
         // Packet type
-        frameData.Add(XbeeFrame.PacketRemoteAT);
+        frameData.Add(XbeeFrame.PacketTypeRemoteAT);
         ++dataLen;
         // Frame ID
         frameData.Add(1);

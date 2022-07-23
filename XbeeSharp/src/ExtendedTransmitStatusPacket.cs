@@ -50,7 +50,7 @@ public class ExtendedTransmitStatus
     {
         packet = null;
 
-        if (xbeeFrame.FrameType != XbeeFrame.ExtendedTransmitStatus)
+        if (xbeeFrame.FrameType != XbeeFrame.PacketTypeExtendedTransmitStatus)
         {
             return false;
         }
@@ -73,7 +73,7 @@ public class ExtendedTransmitStatus
     /// <summary>
     /// XBee frame indicator.
     /// </summary>
-    public const byte FrameType = XbeeFrame.ExtendedTransmitStatus;
+    public const byte FrameType = XbeeFrame.PacketTypeExtendedTransmitStatus;
 
     /// <summary>
     /// Underlying XBee frame.

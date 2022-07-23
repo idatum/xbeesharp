@@ -234,7 +234,7 @@ class Program
                 {
                     _tracing.Debug("Skipping Route Record Indicator packet.");
                 }
-                else if (xbeeFrame.FrameType == XbeeFrame.ExtendedTransmitStatus)
+                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeExtendedTransmitStatus)
                 {
                     ExtendedTransmitStatus? extendedTransmitStatus;
                     if (!ExtendedTransmitStatus.Parse(out extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus == null)
@@ -251,9 +251,26 @@ class Program
                         _tracing.Info($"Extended transmit status frame id = {extendedTransmitStatus.FrameId} from 0x{extendedTransmitStatus.NetworkAddress:X4}");
                     }
                 }
+                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeModemStatus)
+                {
+                    _tracing.Debug("Skipping Modem Status.");
+                }
                 else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
                 {
-                    _tracing.Debug("Skipping Remote AT Command Response.");
+                    RemoteATCommandResponse? remoteATCommandResponse;
+                    if (!RemoteATCommandResponse.Parse(out remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse == null)
+                    {
+                        _tracing.Error("Invalid remote AT response packet.");
+                        continue;
+                    }
+                    if (remoteATCommandResponse.CommandStatus != 0)
+                    {
+                        _tracing.Warning($"Remote AT response packet error 0x{remoteATCommandResponse.CommandStatus:X2} from {remoteATCommandResponse.SourceAddress.AsString()}");
+                    }
+                    else
+                    {
+                        _tracing.Info($"Remote AT response command {remoteATCommandResponse.Command} from {remoteATCommandResponse.SourceAddress.AsString()}");
+                    }
                 }
                 else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeNodeIdentification)
                 {
@@ -266,21 +283,17 @@ class Program
                     var remoteSourceAddress = nodeIdentificationPacket.RemoteSourceAddress.AsString();
                     var networkAddress = $"0x{nodeIdentificationPacket.RemoteNetworkAddress:X4}";
                     var nodeIdent = string.IsNullOrWhiteSpace(nodeIdentificationPacket.NodeIdentifier) ? String.Empty : nodeIdentificationPacket.NodeIdentifier.Trim();
-                    var deviceType = string.Empty;
-                    switch (nodeIdentificationPacket.DeviceType)
+                    var deviceType = nodeIdentificationPacket.DeviceType switch
                     {
-                        case 0x00:
-                            deviceType = "coordinator";
-                            break;
-                        case 0x01:
-                            deviceType = "router";
-                            break;
-                        case 0x02:
-                            deviceType = "end device";
-                            break;
-                        default:
-                            deviceType = $"{nodeIdentificationPacket.DeviceType:X2}";
-                            break;
+                        0x00 => "coordinator",
+                        0x01 => "router",
+                        0x02 => "end device",
+                        _ => string.Empty,
+                    };
+                    if (string.IsNullOrEmpty(deviceType))
+                    {
+                        _tracing.Warning($"Invalid node identification packet device type: {nodeIdentificationPacket.DeviceType:X2} from {remoteSourceAddress}");
+                        continue;
                     }
                     _tracing.Info($"Node identification {nodeIdent} {deviceType}: {remoteSourceAddress} {networkAddress}");
                     var topic = $"{_niTopic}/{nodeIdentificationPacket.RemoteSourceAddress.AsString()}";

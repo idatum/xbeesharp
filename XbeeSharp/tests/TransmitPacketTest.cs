@@ -11,7 +11,7 @@ public class TransmitPacketTest
     {
         var reasonablyLargePayload = Encoding.UTF8.GetBytes("0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
         XbeeFrame? xbeeFrame;
-        bool created = TransmitPacket.CreateXbeeFrame(out xbeeFrame, Address, reasonablyLargePayload, false);
+        bool created = TransmitPacket.CreateXbeeFrame(out xbeeFrame, Address, 1, reasonablyLargePayload, false);
         Xunit.Assert.NotNull(xbeeFrame);
         Xunit.Assert.True(created);
     }
@@ -21,7 +21,7 @@ public class TransmitPacketTest
     {
         var reasonablyLargePayload = Encoding.UTF8.GetBytes("7D214567897D212345678901234567890123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789");
         XbeeFrame? xbeeFrame;
-        bool created = TransmitPacket.CreateXbeeFrame(out xbeeFrame, Address, reasonablyLargePayload, true);
+        bool created = TransmitPacket.CreateXbeeFrame(out xbeeFrame, Address, 1, reasonablyLargePayload, true);
         Xunit.Assert.NotNull(xbeeFrame);
         Xunit.Assert.True(created);
     }

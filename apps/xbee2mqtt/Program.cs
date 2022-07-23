@@ -17,6 +17,7 @@ using System.IO.Ports;
 
 class Program
 {
+    private const byte DefaultFrameId = 1;
     private static IMqttClient? _mqttClient;
     private static Tracing _tracing = new();
     private static IConfigurationRoot? _configuration;
@@ -126,7 +127,7 @@ class Program
                     var splitTopic = e.ApplicationMessage.Topic.Split('/');
                     var address = splitTopic[splitTopic.Length - 1];
                     var xbeeAddress = XbeeAddress.Create(address);
-                    if (!TransmitPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, e.ApplicationMessage.Payload, escaped))
+                    if (!TransmitPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultFrameId, e.ApplicationMessage.Payload, escaped))
                     {
                         _tracing.Error("Could not create transmit packet.");
                         return;
@@ -140,7 +141,7 @@ class Program
                     var command = new byte [] {e.ApplicationMessage.Payload[0], e.ApplicationMessage.Payload[1]};
                     var parameterValue = new List<byte>(e.ApplicationMessage.Payload).GetRange(2, e.ApplicationMessage.Payload.Length - 2);
                     var xbeeAddress = XbeeAddress.Create(address);
-                    if (!RemoteATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, command, parameterValue, escaped))
+                    if (!TransmitATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultFrameId, command, parameterValue, escaped))
                     {
                         _tracing.Error("Could not create remote AT packet.");
                         return;

@@ -55,8 +55,7 @@ public class ReceiveIOPacket : ReceiveBasePacket
         var networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[12], xbeeFrame.FrameData[13]);
         // Receive option.
         var receiveOptions = xbeeFrame.FrameData[14];
-        // Sample sets count.
-        var sampleCount = xbeeFrame.FrameData[15];
+        // Sample count (offset 15) skipped and is always == 1.
         // Digital channel mask bytes.
         // 1st byte: x x x D12 D11 D10 x x
         // 2nd byte: D7 D6 D4 D3 D2 D1 D0

@@ -1,6 +1,6 @@
 namespace XbeeTests;
 
-public class RemoteATPacketTest
+public class TransmitATPacketTest
 {
     // 0x0013010203040506
     static readonly XbeeAddress Address = XbeeAddress.Create(new byte [] {0x00, 0x13, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06});
@@ -19,7 +19,7 @@ public class RemoteATPacketTest
     public void PinOnPacketEscaped()
     {
         XbeeFrame? xbeeFrame;
-        Xunit.Assert.True(RemoteATPacket.CreateXbeeFrame(out xbeeFrame, Address, new byte [] {0x44, 0x30}, new byte [] {0x00, 0x05}, true));
+        Xunit.Assert.True(TransmitATPacket.CreateXbeeFrame(out xbeeFrame, Address, 1, new byte [] {0x44, 0x30}, new byte [] {0x00, 0x05}, true));
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
         {

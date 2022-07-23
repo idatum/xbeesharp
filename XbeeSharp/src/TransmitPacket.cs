@@ -9,7 +9,7 @@ public static class TransmitPacket
     /// Create underlying XBee frame.
     /// </summary>
     public static bool CreateXbeeFrame(out XbeeFrame? xbeeFrame, XbeeAddress address,
-                                        IReadOnlyList<byte> data, bool escaped=false)
+                                       byte frameId, IReadOnlyList<byte> data, bool escaped=false)
     {
         if (data == null)
         {
@@ -22,7 +22,7 @@ public static class TransmitPacket
         frameData.Add(XbeeFrame.PacketTypeTransmit);
         ++dataLen;
         // Frame ID
-        frameData.Add(1);
+        frameData.Add(frameId);
         ++dataLen;
         // Long address.
         foreach (var b in address.LongAddress)

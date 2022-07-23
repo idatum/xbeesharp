@@ -3,13 +3,13 @@ namespace XbeeSharp;
 /// <summary>
 /// Remote AT command request packet.
 /// </summary>
-public static class RemoteATPacket
+public static class TransmitATPacket
 {
     /// <summary>
     /// Create underlying XBee frame.
     /// </summary>
-    public static bool CreateXbeeFrame(out XbeeFrame? xbeeFrame, XbeeAddress address, byte[] command,
-                                        IReadOnlyList<byte> parameterValue, bool escaped)
+    public static bool CreateXbeeFrame(out XbeeFrame? xbeeFrame, XbeeAddress address, byte frameId,
+                                       byte[] command, IReadOnlyList<byte> parameterValue, bool escaped)
     {
         if (command == null || command.Length != 2)
         {
@@ -22,7 +22,7 @@ public static class RemoteATPacket
         frameData.Add(XbeeFrame.PacketTypeRemoteAT);
         ++dataLen;
         // Frame ID
-        frameData.Add(1);
+        frameData.Add(frameId);
         ++dataLen;
         // Long address.
         foreach (var b in address.LongAddress)

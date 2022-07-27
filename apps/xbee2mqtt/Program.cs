@@ -114,10 +114,11 @@ class Program
     {
         const bool escaped = true;
         var serialPort = new SerialPort(serialPortName, serialBaudRate);
+        serialPort.WriteTimeout = 500;
         serialPort.Open();
-        
-        // Handle XBee MQTT messages that need serial port access.
-        _mqttClient.UseApplicationMessageReceivedHandler(e =>
+
+        // Handle MQTT messages that need XBee serial port access.
+        _mqttClient.UseApplicationMessageReceivedHandler(async e =>
         {
             try
             {
@@ -137,7 +138,7 @@ class Program
                 {
                     var splitTopic = e.ApplicationMessage.Topic.Split('/');
                     var address = splitTopic[splitTopic.Length - 1];
-                    // Payload first two byte are AT command (e.g. D0), remaining are parameter value (e.g. 0x00 0x05).
+                    // Payload first two bytes are AT command (e.g. D0), remaining are parameter value (e.g. 0x00 0x05).
                     var command = new byte [] {e.ApplicationMessage.Payload[0], e.ApplicationMessage.Payload[1]};
                     var parameterValue = new List<byte>(e.ApplicationMessage.Payload).GetRange(2, e.ApplicationMessage.Payload.Length - 2);
                     var xbeeAddress = XbeeAddress.Create(address);
@@ -155,7 +156,7 @@ class Program
                 if (xbeeFrame != null)
                 {
                     _tracing.Info($"Handled {e.ApplicationMessage.Topic}");
-                    serialPort.Write(xbeeFrame.FrameData.ToArray(), 0, xbeeFrame.FrameData.Count);
+                    await serialPort.BaseStream.WriteAsync(xbeeFrame.FrameData.ToArray(), 0, xbeeFrame.FrameData.Count);
                 }
             }
             catch (Exception ex)
@@ -170,150 +171,146 @@ class Program
 
         while (true)
         {
-            XbeeFrame? xbeeFrame;
-            if (XbeeSerial.TryReadNextFrame(out xbeeFrame, serialPort, escaped))
+            XbeeFrame? xbeeFrame = await XbeeSerial.ReadNextFrameAsync(serialPort, escaped);
+            if (xbeeFrame == null)
             {
-                if (xbeeFrame == null)
+                _tracing.Warning("Partial frame read.");
+                continue;
+            }
+            if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
+            {
+                ReceivePacket? receivePacket;
+                if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
                 {
-                    _tracing.Warning("Partial frame read.");
+                    _tracing.Error("Invalid receive packet.");
                     continue;
                 }
-                if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
+                var sourceAddress = receivePacket.SourceAddress.AsString();
+                if (_tracing.TraceLevel == TraceLevel.Verbose)
                 {
-                    ReceivePacket? receivePacket;
-                    if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+                    var optionText = receivePacket.ReceiveOptions == 1 ? "with response" : "broadcast";
+                    var data = Encoding.Default.GetString(receivePacket.ReceiveData.ToArray());
+                    _tracing.Verbose($"RX packet {optionText} from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {data}");
+                }
+                var topic = $"{_rxTopic}/{sourceAddress}";
+                if (topic == null)
+                {
+                    throw new InvalidOperationException();
+                }
+                await PublishMessageAsync($"{topic}", receivePacket.ReceiveData);
+            }
+            else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
+            {
+                ReceiveIOPacket? receivePacket;
+                if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+                {
+                    _tracing.Error("Invalid receive IO packet.");
+                    continue;
+                }
+                var sourceAddress = receivePacket.SourceAddress.AsString();
+                if (_tracing.TraceLevel == TraceLevel.Verbose || _tracing.TraceLevel == TraceLevel.Info)
+                {
+                    var sampleBuilder = new StringBuilder();
+                    foreach (var dio in receivePacket.DigitalSamples)
                     {
-                        _tracing.Error("Invalid receive packet.");
-                        continue;
+                        sampleBuilder.Append($"DIO{dio.Dio}={dio.Value} ");
                     }
-                    var sourceAddress = receivePacket.SourceAddress.AsString();
-                    if (_tracing.TraceLevel == TraceLevel.Verbose)
+                    foreach (var adc in receivePacket.AnalogSamples)
                     {
-                        var optionText = receivePacket.ReceiveOptions == 1 ? "with response" : "broadcast";
-                        var data = Encoding.Default.GetString(receivePacket.ReceiveData.ToArray());
-                        _tracing.Verbose($"RX packet {optionText} from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {data}");
+                        sampleBuilder.Append($"AD{adc.Adc}={adc.Value:X4} ");
                     }
-                    var topic = $"{_rxTopic}/{sourceAddress}";
+                    var samples = sampleBuilder.ToString().Trim();
+                    _tracing.Info($"RX IO from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {samples}");
+                    var topic = $"{_ioTopic}/{sourceAddress}";
                     if (topic == null)
                     {
                         throw new InvalidOperationException();
                     }
-                    await PublishMessageAsync($"{topic}", receivePacket.ReceiveData);
+                    await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes(samples));
                 }
-                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
+            }
+            // Common known packet types not processed:
+            else if (xbeeFrame.FrameType == XbeeFrame.RouteRecordIndicator)
+            {
+                _tracing.Debug("Skipping Route Record Indicator packet.");
+            }
+            else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeExtendedTransmitStatus)
+            {
+                ExtendedTransmitStatusPacket? extendedTransmitStatus;
+                if (!ExtendedTransmitStatusPacket.Parse(out extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus == null)
                 {
-                    ReceiveIOPacket? receivePacket;
-                    if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
-                    {
-                        _tracing.Error("Invalid receive IO packet.");
-                        continue;
-                    }
-                    var sourceAddress = receivePacket.SourceAddress.AsString();
-                    if (_tracing.TraceLevel == TraceLevel.Verbose || _tracing.TraceLevel == TraceLevel.Info)
-                    {
-                        var sampleBuilder = new StringBuilder();
-                        foreach (var dio in receivePacket.DigitalSamples)
-                        {
-                            sampleBuilder.Append($"DIO{dio.Dio}={dio.Value} ");
-                        }
-                        foreach (var adc in receivePacket.AnalogSamples)
-                        {
-                            sampleBuilder.Append($"AD{adc.Adc}={adc.Value:X4} ");
-                        }
-                        var samples = sampleBuilder.ToString().Trim();
-                        _tracing.Info($"RX IO from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {samples}");
-                        var topic = $"{_ioTopic}/{sourceAddress}";
-                        if (topic == null)
-                        {
-                            throw new InvalidOperationException();
-                        }
-                        await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes(samples));
-                    }
+                    _tracing.Error("Invalid extended receive status packet.");
+                    continue;
                 }
-                // Common known packet types not processed:
-                else if (xbeeFrame.FrameType == XbeeFrame.RouteRecordIndicator)
+                if (extendedTransmitStatus.DeliveryStatus != 0)
                 {
-                    _tracing.Debug("Skipping Route Record Indicator packet.");
-                }
-                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeExtendedTransmitStatus)
-                {
-                    ExtendedTransmitStatusPacket? extendedTransmitStatus;
-                    if (!ExtendedTransmitStatusPacket.Parse(out extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus == null)
-                    {
-                        _tracing.Error("Invalid extended receive status packet.");
-                        continue;
-                    }
-                    if (extendedTransmitStatus.DeliveryStatus != 0)
-                    {
-                        _tracing.Warning($"Extended transmit status error 0x{extendedTransmitStatus.DeliveryStatus:X2} from 0x{extendedTransmitStatus.NetworkAddress:X4}");
-                    }
-                    else
-                    {
-                        _tracing.Info($"Extended transmit status frame id = {extendedTransmitStatus.FrameId} from 0x{extendedTransmitStatus.NetworkAddress:X4}");
-                    }
-                }
-                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeModemStatus)
-                {
-                    ModemStatusPacket? modemStatusPacket;
-                    if (!ModemStatusPacket.Parse(out modemStatusPacket, xbeeFrame) || modemStatusPacket == null)
-                    {
-                        _tracing.Error("Invalid modem status packet.");
-                        continue;
-                    }
-                    _tracing.Info($"Modem status = {modemStatusPacket.ModemStatus}");
-                }
-                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
-                {
-                    ATCommandResponsePacket? remoteATCommandResponse;
-                    if (!ATCommandResponsePacket.Parse(out remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse == null)
-                    {
-                        _tracing.Error("Invalid remote AT response packet.");
-                        continue;
-                    }
-                    if (remoteATCommandResponse.CommandStatus != 0)
-                    {
-                        _tracing.Warning($"Remote AT response packet error 0x{remoteATCommandResponse.CommandStatus:X2} from {remoteATCommandResponse.SourceAddress.AsString()}");
-                    }
-                    else
-                    {
-                        _tracing.Info($"Remote AT response command {remoteATCommandResponse.Command} from {remoteATCommandResponse.SourceAddress.AsString()}");
-                    }
-                }
-                else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeNodeIdentification)
-                {
-                    NodeIdentificationPacket? nodeIdentificationPacket;
-                    if (!NodeIdentificationPacket.Parse(out nodeIdentificationPacket, xbeeFrame) || nodeIdentificationPacket == null)
-                    {
-                        _tracing.Error("Invalid node identification packet.");
-                        continue;
-                    }
-                    var remoteSourceAddress = nodeIdentificationPacket.RemoteSourceAddress.AsString();
-                    var networkAddress = $"0x{nodeIdentificationPacket.RemoteNetworkAddress:X4}";
-                    var nodeIdent = string.IsNullOrWhiteSpace(nodeIdentificationPacket.NodeIdentifier) ? String.Empty : nodeIdentificationPacket.NodeIdentifier.Trim();
-                    var deviceType = nodeIdentificationPacket.DeviceType switch
-                    {
-                        0x00 => "coordinator",
-                        0x01 => "router",
-                        0x02 => "end device",
-                        _ => string.Empty,
-                    };
-                    if (string.IsNullOrEmpty(deviceType))
-                    {
-                        _tracing.Warning($"Invalid node identification packet device type: {nodeIdentificationPacket.DeviceType:X2} from {remoteSourceAddress}");
-                        continue;
-                    }
-                    _tracing.Info($"Node identification {nodeIdent} {deviceType}: {remoteSourceAddress} {networkAddress}");
-                    var topic = $"{_niTopic}/{nodeIdentificationPacket.RemoteSourceAddress.AsString()}";
-                    if (topic == null)
-                    {
-                        throw new InvalidOperationException();
-                    }
-                    await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes($"{deviceType} 0x{nodeIdentificationPacket.RemoteNetworkAddress:X4} {nodeIdent}"));
+                    _tracing.Warning($"Extended transmit status error 0x{extendedTransmitStatus.DeliveryStatus:X2} from 0x{extendedTransmitStatus.NetworkAddress:X4}");
                 }
                 else
                 {
-                    _tracing.Warning($"Unsupported frame type: {xbeeFrame.FrameType:X2}");
+                    _tracing.Info($"Extended transmit status frame id = {extendedTransmitStatus.FrameId} from 0x{extendedTransmitStatus.NetworkAddress:X4}");
                 }
+            }
+            else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeModemStatus)
+            {
+                ModemStatusPacket? modemStatusPacket;
+                if (!ModemStatusPacket.Parse(out modemStatusPacket, xbeeFrame) || modemStatusPacket == null)
+                {
+                    _tracing.Error("Invalid modem status packet.");
+                    continue;
+                }
+                _tracing.Info($"Modem status = {modemStatusPacket.ModemStatus}");
+            }
+            else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
+            {
+                ATCommandResponsePacket? remoteATCommandResponse;
+                if (!ATCommandResponsePacket.Parse(out remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse == null)
+                {
+                    _tracing.Error("Invalid remote AT response packet.");
+                    continue;
+                }
+                if (remoteATCommandResponse.CommandStatus != 0)
+                {
+                    _tracing.Warning($"Remote AT response packet error 0x{remoteATCommandResponse.CommandStatus:X2} from {remoteATCommandResponse.SourceAddress.AsString()}");
+                }
+                else
+                {
+                    _tracing.Info($"Remote AT response command {remoteATCommandResponse.Command} from {remoteATCommandResponse.SourceAddress.AsString()}");
+                }
+            }
+            else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeNodeIdentification)
+            {
+                NodeIdentificationPacket? nodeIdentificationPacket;
+                if (!NodeIdentificationPacket.Parse(out nodeIdentificationPacket, xbeeFrame) || nodeIdentificationPacket == null)
+                {
+                    _tracing.Error("Invalid node identification packet.");
+                    continue;
+                }
+                var remoteSourceAddress = nodeIdentificationPacket.RemoteSourceAddress.AsString();
+                var networkAddress = $"0x{nodeIdentificationPacket.RemoteNetworkAddress:X4}";
+                var nodeIdent = string.IsNullOrWhiteSpace(nodeIdentificationPacket.NodeIdentifier) ? String.Empty : nodeIdentificationPacket.NodeIdentifier.Trim();
+                var deviceType = nodeIdentificationPacket.DeviceType switch
+                {
+                    0x00 => "coordinator",
+                    0x01 => "router",
+                    0x02 => "end device",
+                    _ => "(undefined)",
+                };
+                if (string.IsNullOrEmpty(deviceType))
+                {
+                    _tracing.Warning($"Invalid node identification packet device type: {nodeIdentificationPacket.DeviceType:X2} from {remoteSourceAddress}");
+                }
+                _tracing.Info($"Node identification {nodeIdent} {deviceType}: {remoteSourceAddress} {networkAddress}");
+                var topic = $"{_niTopic}/{nodeIdentificationPacket.RemoteSourceAddress.AsString()}";
+                if (topic == null)
+                {
+                    throw new InvalidOperationException();
+                }
+                await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes($"{deviceType} 0x{nodeIdentificationPacket.RemoteNetworkAddress:X4} {nodeIdent}"));
+            }
+            else
+            {
+                _tracing.Warning($"Unsupported frame type: {xbeeFrame.FrameType:X2}");
             }
         }
     }

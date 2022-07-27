@@ -7,6 +7,7 @@ const int SerialBaudRate = 115200;
 const bool Escaped = true;
 
 var serialPort = new SerialPort(SerialPortName, SerialBaudRate);
+serialPort.WriteTimeout = 500;
 serialPort.Open();
 while (true)
 {

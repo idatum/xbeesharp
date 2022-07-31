@@ -56,15 +56,15 @@ public class ATCommandResponsePacket
             return false;
         }
         // Frame ID.
-        byte frameId = xbeeFrame.FrameData[4];
+        byte frameId = xbeeFrame.Data[4];
         // 64-bit source address.
-        var sourceAddress = xbeeFrame.FrameData.Take(5..13).ToList();
+        var sourceAddress = xbeeFrame.Data.Take(5..13).ToList();
         // Network address.
-        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[13], xbeeFrame.FrameData[14]);
+        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[13], xbeeFrame.Data[14]);
         // AT command.
-        var command = new string(new char [] {(char)xbeeFrame.FrameData[15], (char)xbeeFrame.FrameData[16]});
+        var command = new string(new char [] {(char)xbeeFrame.Data[15], (char)xbeeFrame.Data[16]});
         // Command status
-        byte commandStatus = xbeeFrame.FrameData[17];
+        byte commandStatus = xbeeFrame.Data[17];
 
         packet = new ATCommandResponsePacket(xbeeFrame, frameId, sourceAddress, networkAddress, command, commandStatus);
 

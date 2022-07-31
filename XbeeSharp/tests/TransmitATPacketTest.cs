@@ -23,7 +23,7 @@ public class TransmitATPacketTest
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
         {
-            Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.FrameData, xbeeFrame.Escaped));
+            Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.Data, xbeeFrame.Escaped));
         }
     }
 }

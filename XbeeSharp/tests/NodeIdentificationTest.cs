@@ -13,7 +13,7 @@ public class NodeIdentificationTest
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
         {
-            Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.FrameData, false));
+            Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.Data, false));
             NodeIdentificationPacket? packet;
             Xunit.Assert.True(NodeIdentificationPacket.Parse(out packet, xbeeFrame));
             Xunit.Assert.NotNull(packet);

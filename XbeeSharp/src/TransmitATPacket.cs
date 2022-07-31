@@ -17,36 +17,36 @@ public static class TransmitATPacket
         }
         xbeeFrame = null;
         ushort dataLen = 0;
-        var frameData = new List<byte>();
+        var rawData = new List<byte>();
         // Packet type
-        frameData.Add(XbeeFrame.PacketTypeRemoteAT);
+        rawData.Add(XbeeFrame.PacketTypeRemoteAT);
         ++dataLen;
         // Frame ID
-        frameData.Add(frameId);
+        rawData.Add(frameId);
         ++dataLen;
         // Long address.
         foreach (var b in address.LongAddress)
         {
-            XbeeFrameBuilder.AppendWithEscape(escaped, frameData, b);
+            XbeeFrameBuilder.AppendWithEscape(escaped, rawData, b);
             ++dataLen;
         }
         // short address.
         foreach (var b in new byte[] {0xFF, 0xFE})
         {
-            XbeeFrameBuilder.AppendWithEscape(escaped, frameData, b);
+            XbeeFrameBuilder.AppendWithEscape(escaped, rawData, b);
             ++dataLen;
         }
         // Remote command options: 0x02 for apply changes.
-        frameData.Add(0x02);
+        rawData.Add(0x02);
         ++dataLen;
         // AT command
-        frameData.Add(command[0]);
-        frameData.Add(command[1]);
+        rawData.Add(command[0]);
+        rawData.Add(command[1]);
         dataLen += 2;
         // Parameter value at offset 18 bytes
         foreach (var b in parameterValue)
         {
-            XbeeFrameBuilder.AppendWithEscape(escaped, frameData, b);
+            XbeeFrameBuilder.AppendWithEscape(escaped, rawData, b);
             ++dataLen;
         }
         // Fill remaining frame bytes.
@@ -57,14 +57,15 @@ public static class TransmitATPacket
         prefix.Add(XbeeFrame.StartByte);
         XbeeFrameBuilder.AppendWithEscape(escaped, prefix, dataLenHi);
         XbeeFrameBuilder.AppendWithEscape(escaped, prefix, dataLenLo);
-        frameData.InsertRange(0, prefix);
-        // Checksum
-        frameData.Add(XbeeFrameBuilder.CalculateChecksum(frameData, escaped));
-        if (!XbeeFrameBuilder.ChecksumValid(frameData, escaped))
+        rawData.InsertRange(0, prefix);
+        // Checksum (escape if needed).
+        var checksum = XbeeFrameBuilder.CalculateChecksum(rawData, escaped);
+        XbeeFrameBuilder.AppendWithEscape(escaped, rawData, checksum);
+        if (!XbeeFrameBuilder.ChecksumValid(rawData, escaped))
         {
             throw new InvalidOperationException();
         }
-        xbeeFrame = new XbeeFrame(frameData, escaped);
+        xbeeFrame = new XbeeFrame(rawData, escaped);
         if (xbeeFrame == null)
         {
             return false;

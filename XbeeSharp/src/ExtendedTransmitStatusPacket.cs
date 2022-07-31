@@ -56,15 +56,15 @@ public class ExtendedTransmitStatusPacket
             return false;
         }
         // Frame ID.
-        byte frameId = xbeeFrame.FrameData[4];
+        byte frameId = xbeeFrame.Data[4];
         // Network address.
-        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[5], xbeeFrame.FrameData[6]);
+        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[5], xbeeFrame.Data[6]);
         // Transmit retry count.
-        byte transmitRetryCount = xbeeFrame.FrameData[7];
+        byte transmitRetryCount = xbeeFrame.Data[7];
         // Delivery status.
-        byte deliveryStatus = xbeeFrame.FrameData[8];
+        byte deliveryStatus = xbeeFrame.Data[8];
         // Discovery status.
-        byte discoveryStatus = xbeeFrame.FrameData[9];
+        byte discoveryStatus = xbeeFrame.Data[9];
 
         packet = new ExtendedTransmitStatusPacket(xbeeFrame, frameId, networkAddress, transmitRetryCount, deliveryStatus, discoveryStatus);
 

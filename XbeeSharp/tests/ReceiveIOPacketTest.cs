@@ -15,7 +15,7 @@ public class ReceivePacketIOTests
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
         {
-            Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.FrameData, false));
+            Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.Data, false));
         }
     }
 

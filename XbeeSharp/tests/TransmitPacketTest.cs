@@ -5,6 +5,7 @@ using System.Text;
 public class TransmitPacketTest
 {
     static readonly XbeeAddress Address = XbeeAddress.Create(new byte [] {0x00, 0x13, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06});
+    private readonly XbeeAddress EmptyAddress = XbeeAddress.Create(new byte [] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
 
     [Fact]
     public void LargePayloadUnescaped()
@@ -24,5 +25,19 @@ public class TransmitPacketTest
         bool created = TransmitPacket.CreateXbeeFrame(out xbeeFrame, Address, 1, reasonablyLargePayload, true);
         Xunit.Assert.NotNull(xbeeFrame);
         Xunit.Assert.True(created);
+    }
+
+    [Fact]
+    public void EscapedChecksumTxPacket()
+    {
+        XbeeFrame? xbeeFrame;
+        // Escaped checksum should be: 0x7D, 0x31
+        Xunit.Assert.True(TransmitPacket.CreateXbeeFrame(out xbeeFrame, EmptyAddress, 1, new byte [] {0xE0}, true));
+        if (xbeeFrame != null)
+        {
+            // Array length should include extra escape byte (0x7D).
+            Xunit.Assert.Equal(20, xbeeFrame.Data.Count);
+            Xunit.Assert.Equal(0x7D, xbeeFrame.Data[xbeeFrame.Data.Count - 2]);
+        }
     }
 }

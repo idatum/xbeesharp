@@ -50,21 +50,21 @@ public class ReceiveIOPacket : ReceiveBasePacket
             return false;
         }
         // 64-bit source address.
-        var sourceAddress = xbeeFrame.FrameData.Take(4..12).ToList();
+        var sourceAddress = xbeeFrame.Data.Take(4..12).ToList();
         // 16-bit source network address.
-        var networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[12], xbeeFrame.FrameData[13]);
+        var networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[12], xbeeFrame.Data[13]);
         // Receive option.
-        var receiveOptions = xbeeFrame.FrameData[14];
+        var receiveOptions = xbeeFrame.Data[14];
         // Sample count (offset 15) skipped and is always == 1.
         // Digital channel mask bytes.
         // 1st byte: x x x D12 D11 D10 x x
         // 2nd byte: D7 D6 D4 D3 D2 D1 D0
-        ushort digitalChannelMask = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[16], xbeeFrame.FrameData[17]);
+        ushort digitalChannelMask = XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[16], xbeeFrame.Data[17]);
         // Analog channel mask byte: x x x A3 A2 A1 A0
-        byte analogChannelMask = xbeeFrame.FrameData[18];
+        byte analogChannelMask = xbeeFrame.Data[18];
         // Digital samples.
         var digitalSamples = new List<(int Dio, bool Value)>();
-        ushort digitalValues = digitalChannelMask > 0 ? XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[19], xbeeFrame.FrameData[20]) : (ushort)0;
+        ushort digitalValues = digitalChannelMask > 0 ? XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[19], xbeeFrame.Data[20]) : (ushort)0;
         for (var i = 0; i < 15; ++i)
         {
             var mask = ((ushort)1 << i) & digitalChannelMask;
@@ -85,7 +85,7 @@ public class ReceiveIOPacket : ReceiveBasePacket
             var mask = 0x01 << i;
             if (0 != (mask & analogChannelMask))
             {
-                ushort adcVal = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[analogOffset], xbeeFrame.FrameData[analogOffset + 1]);
+                ushort adcVal = XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[analogOffset], xbeeFrame.Data[analogOffset + 1]);
                 var sample = (Adc: i, Value: adcVal);
                 analogSamples.Add(sample);
                 analogOffset += 2;

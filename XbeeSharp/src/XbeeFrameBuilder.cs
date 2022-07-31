@@ -68,10 +68,9 @@ public class XbeeFrameBuilder
     public static bool ChecksumValid(IReadOnlyList<byte> data, bool escaped)
     {
         var dataOffset = XbeeFrame.GetDataOffset(data, escaped);
-        var checksum = data[data.Count - 1];
         int total = 0;
         bool nextByteEscaped = false;
-        for (var i = dataOffset; i < data.Count - 1; ++i)
+        for (var i = dataOffset; i < data.Count; ++i)
         {
             if (escaped && data[i] == XbeeFrame.EscapeByte)
             {
@@ -89,7 +88,6 @@ public class XbeeFrameBuilder
             }
         }
 
-        total += checksum;
         total &= 0xff;
 
         return total == 0xff;
@@ -98,23 +96,24 @@ public class XbeeFrameBuilder
     /// <summary>
     /// Append byte; escape if needed.
     /// </summary>
-    public static bool AppendWithEscape(bool escaped, IList<byte> frameData, byte b)
+    public static bool AppendWithEscape(bool escaped, IList<byte> data, byte b)
     {
         if (escaped && ShouldEscape(b))
         {
-            frameData.Add(XbeeFrame.EscapeByte);
-            frameData.Add((byte)(0x20 ^ b));
+            data.Add(XbeeFrame.EscapeByte);
+            data.Add((byte)(0x20 ^ b));
             return true;
         }
         else
         {
-            frameData.Add(b);
+            data.Add(b);
         }
         return false;
     }
 
     /// <summary>
-    /// Whether byte should be escaped.
+    /// Whether byte should be escaped for
+    /// packets expecting escaped bytes.
     /// </summary>
     public static bool ShouldEscape(byte b)
     {
@@ -231,9 +230,9 @@ public class XbeeFrameBuilder
     }
 
     /// <summary>
-    /// Extract data length field.
+    /// Extract frame data length field.
     /// </summary>
-    private static ushort GetDataLength(IReadOnlyList<byte> data, bool escaped)
+    private static ushort GetFrameDataLength(IReadOnlyList<byte> data, bool escaped)
     {
         if (!escaped)
         {

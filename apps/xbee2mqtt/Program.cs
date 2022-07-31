@@ -156,7 +156,7 @@ class Program
                 if (xbeeFrame != null)
                 {
                     _tracing.Info($"Handled {e.ApplicationMessage.Topic}");
-                    await serialPort.BaseStream.WriteAsync(xbeeFrame.FrameData.ToArray(), 0, xbeeFrame.FrameData.Count);
+                    await serialPort.BaseStream.WriteAsync(xbeeFrame.Data.ToArray(), 0, xbeeFrame.Data.Count);
                 }
             }
             catch (Exception ex)

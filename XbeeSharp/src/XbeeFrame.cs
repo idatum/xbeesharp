@@ -62,7 +62,7 @@ public class XbeeFrame
     /// <summary>
     /// Full packet.
     /// </summary>
-    private List<byte> _frameData;
+    private List<byte> _data;
     /// <summary>
     /// Checksum
     /// </summary>
@@ -79,12 +79,12 @@ public class XbeeFrame
     /// <summary>
     /// Construct from packet data.
     /// </summary>
-    public XbeeFrame(List<byte> frameData, bool escaped=true)
+    public XbeeFrame(List<byte> data, bool escaped=true)
     {
-        _frameData = frameData;
+        _data = data;
         // Big-endian
-        _frameDataLength = XbeeFrameBuilder.ToBigEndian(frameData[1], frameData[2]);
-        _checksum = frameData[frameData.Count - 1];
+        _frameDataLength = XbeeFrameBuilder.ToBigEndian(data[1], data[2]);
+        _checksum = data[data.Count - 1];
         _escaped = escaped;
     }
 
@@ -134,11 +134,11 @@ public class XbeeFrame
     }
     
     /// <summary>
-    /// Frame data.
+    /// All frame data.
     /// </summary>
-    public IReadOnlyList<byte> FrameData
+    public IReadOnlyList<byte> Data
     {
-        get => _frameData;
+        get => _data;
     }
 
     /// <summary>
@@ -151,11 +151,11 @@ public class XbeeFrame
         {
             if (_escaped)
             {
-                return _frameData[GetDataOffset(_frameData, _escaped)];
+                return _data[GetDataOffset(_data, _escaped)];
             }
             else
             {
-                return _frameData[3];
+                return _data[3];
             }
         }
     }

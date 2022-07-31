@@ -11,7 +11,7 @@ public class ModemStatusTest
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
         {
-            Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.FrameData, false));
+            Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.Data, false));
             ModemStatusPacket? packet;
             Xunit.Assert.True(ModemStatusPacket.Parse(out packet, xbeeFrame));
             Xunit.Assert.NotNull(packet);

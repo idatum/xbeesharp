@@ -36,15 +36,15 @@ public class ReceivePacket : ReceiveBasePacket
         }
 
         // 64-bit source address.
-        var sourceAddress = xbeeFrame.FrameData.Take(4..12).ToList();
+        var sourceAddress = xbeeFrame.Data.Take(4..12).ToList();
         // Network address.
-        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[12], xbeeFrame.FrameData[13]);
+        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[12], xbeeFrame.Data[13]);
         // Receive options.
-        var receiveOptions = xbeeFrame.FrameData[14];
+        var receiveOptions = xbeeFrame.Data[14];
         // Receive data
         // 15 byte offset to length of frame + start byte + 2 bytes for length field.
         var receiveDataRange = new Range(DataOffset, xbeeFrame.FrameDataLength + 3);
-        var receiveData = xbeeFrame.FrameData.Take(receiveDataRange).ToList();
+        var receiveData = xbeeFrame.Data.Take(receiveDataRange).ToList();
 
         packet = new ReceivePacket(xbeeFrame, sourceAddress, networkAddress, receiveOptions, receiveData);
 

@@ -56,26 +56,26 @@ public class NodeIdentificationPacket : ReceiveBasePacket
             return false;
         }
         // 64-bit source address.
-        var sourceAddress = xbeeFrame.FrameData.Take(4..12).ToList();
+        var sourceAddress = xbeeFrame.Data.Take(4..12).ToList();
         // Network address.
-        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[12], xbeeFrame.FrameData[13]);
+        ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[12], xbeeFrame.Data[13]);
         // Options.
-        byte options = xbeeFrame.FrameData[14];
+        byte options = xbeeFrame.Data[14];
         // Remote network address.
-        ushort remoteNetworkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.FrameData[15], xbeeFrame.FrameData[16]);
+        ushort remoteNetworkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[15], xbeeFrame.Data[16]);
         // Remote source address.
-        var remoteSourceAddress = xbeeFrame.FrameData.Take(17..25).ToList();
+        var remoteSourceAddress = xbeeFrame.Data.Take(17..25).ToList();
         // Node identifier string.
         var nodeIdentifierBuilder = new StringBuilder();
         var niSize = 0;
-        for (; niSize < MaxNodeIdentierStringSize && xbeeFrame.FrameData[25 + niSize] != 0x00; ++niSize)
+        for (; niSize < MaxNodeIdentierStringSize && xbeeFrame.Data[25 + niSize] != 0x00; ++niSize)
         {
-            var c = (char)xbeeFrame.FrameData[25 + niSize];
+            var c = (char)xbeeFrame.Data[25 + niSize];
             nodeIdentifierBuilder.Append(c);
         }
         ++niSize;
         // Network device type
-        byte deviceType = xbeeFrame.FrameData[27 + niSize];
+        byte deviceType = xbeeFrame.Data[27 + niSize];
 
         packet = new NodeIdentificationPacket(xbeeFrame, sourceAddress, networkAddress, options,
                                               remoteNetworkAddress, remoteSourceAddress, nodeIdentifierBuilder.ToString(),

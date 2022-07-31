@@ -35,7 +35,7 @@ public class ModemStatusPacket
             return false;
         }
         // Modem status.
-        byte modemStatus = xbeeFrame.FrameData[4];
+        byte modemStatus = xbeeFrame.Data[4];
 
         packet = new ModemStatusPacket(xbeeFrame, modemStatus);
 

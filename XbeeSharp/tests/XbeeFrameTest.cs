@@ -8,6 +8,8 @@ public class XbeeFrameTest
     private static readonly byte[] EscapedTXPacket = new byte [] {0x7E, 0x00, XbeeFrame.EscapeByte, 0x31, 0x10, 0x01,
                                                                   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFE,
                                                                   0x00, 0x00, 0x7D, 0x31, XbeeFrame.EscapeByte, 0x33, XbeeFrame.EscapeByte, 0x5E, 0x51};
+    private static readonly byte[] EscapedChecksumTxPacket = new byte [] {0x7E, 0x00, 0x0F, 0x10, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                                                          0xFF, 0xFE, 0x00, 0x00, 0xE0, 0x7D, 0x31};
     
     [Fact]
     public void XBeeFrameBuilderCtorEscaped()
@@ -37,7 +39,7 @@ public class XbeeFrameTest
     public void FullPacketFrameCtorUnescaped()
     {
         var xbeeFrame = new XbeeFrame(new List<byte>(ValidRXPacket), false);
-        Xunit.Assert.NotNull(xbeeFrame.FrameData);
+        Xunit.Assert.NotNull(xbeeFrame.Data);
         Xunit.Assert.Equal(0x1E, xbeeFrame.FrameDataLength);
         Xunit.Assert.Equal(0x8A, xbeeFrame.FrameChecksum);
         Xunit.Assert.Equal(xbeeFrame.FrameDataLength, ValidRXPacket.Length - 4);
@@ -47,7 +49,7 @@ public class XbeeFrameTest
     public void FullPacketFrameCtorEscaped()
     {
         var xbeeFrame = new XbeeFrame(new List<byte>(EscapedTXPacket), true);
-        Xunit.Assert.NotNull(xbeeFrame.FrameData);
+        Xunit.Assert.NotNull(xbeeFrame.Data);
         // Data length is escaped (0x11).
         Xunit.Assert.NotEqual(0x11, xbeeFrame.FrameDataLength);
         Xunit.Assert.Equal(XbeeFrame.EscapeByte, xbeeFrame.FrameDataLength);
@@ -77,6 +79,22 @@ public class XbeeFrameTest
             Xunit.Assert.Equal(xbeeFrame.FrameDataLength, ValidRXPacket.Length - 4);
         }
     }
+
+    [Fact]
+    public void FullPacketEscapedChecksumBuilder()
+    {
+        Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(EscapedChecksumTxPacket, true));
+
+        var xbeeFrame = XbeeTestUtils.CreateFrameFromBuilder(EscapedChecksumTxPacket, true);
+
+        Xunit.Assert.NotNull(xbeeFrame);
+        if (xbeeFrame != null)
+        {
+            // 19 bytes total - delimiter - length - checksum; don't count 0x7d byte for escaped checksum.
+            Xunit.Assert.Equal(15, xbeeFrame.FrameDataLength);
+        }
+    }
+
 
     [Fact]
     public void FullPacketInvalidChecksumBuilderEscaped()
@@ -148,7 +166,7 @@ public class XbeeFrameTest
     public void FrameTypeUnscaped()
     {
         var xbeeFrame = new XbeeFrame(new List<byte>(ValidRXPacket), true);
-        Xunit.Assert.NotNull(xbeeFrame.FrameData);
+        Xunit.Assert.NotNull(xbeeFrame.Data);
         Xunit.Assert.Equal(XbeeFrame.PacketTypeReceive, xbeeFrame.FrameType);
     }
 
@@ -156,7 +174,7 @@ public class XbeeFrameTest
     public void FrameTypeEscaped()
     {
         var xbeeFrame = new XbeeFrame(new List<byte>(EscapedTXPacket), true);
-        Xunit.Assert.NotNull(xbeeFrame.FrameData);
+        Xunit.Assert.NotNull(xbeeFrame.Data);
         Xunit.Assert.Equal(XbeeFrame.PacketTypeTransmit, xbeeFrame.FrameType);
     }
 }

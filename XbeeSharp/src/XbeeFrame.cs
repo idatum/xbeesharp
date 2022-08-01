@@ -78,7 +78,7 @@ public class XbeeFrame
     /// <summary>
     /// Construct from packet data.
     /// </summary>
-    public XbeeFrame(List<byte> data, bool escaped=true)
+    public XbeeFrame(List<byte> data, bool escaped)
     {
         _data = data;
         // Big-endian

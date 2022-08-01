@@ -25,7 +25,7 @@ public class Tracing
 
     public void Debug(string message)
     {
-        Verbose(message);
+        System.Diagnostics.Debug.WriteLine(message);
     }
 
     public void Verbose(string message)

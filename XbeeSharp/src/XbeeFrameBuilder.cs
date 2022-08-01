@@ -70,7 +70,8 @@ public class XbeeFrameBuilder
         var dataOffset = XbeeFrame.GetDataOffset(data, escaped);
         int total = 0;
         bool nextByteEscaped = false;
-        for (var i = dataOffset; i < data.Count; ++i)
+        // Read all but last byte.
+        for (var i = dataOffset; i < data.Count - 1; ++i)
         {
             if (escaped && data[i] == XbeeFrame.EscapeByte)
             {
@@ -86,6 +87,16 @@ public class XbeeFrameBuilder
             {
                 total += data[i];
             }
+        }
+
+        if (nextByteEscaped)
+        {
+            // Checksum was escaped.
+            total += (byte)(0x20 ^ data[data.Count - 1]);
+        }
+        else
+        {
+            total += data[data.Count - 1];
         }
 
         total &= 0xff;

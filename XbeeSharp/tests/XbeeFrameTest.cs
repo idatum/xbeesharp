@@ -10,6 +10,9 @@ public class XbeeFrameTest
                                                                   0x00, 0x00, 0x7D, 0x31, XbeeFrame.EscapeByte, 0x33, XbeeFrame.EscapeByte, 0x5E, 0x51};
     private static readonly byte[] EscapedChecksumTxPacket = new byte [] {0x7E, 0x00, 0x0F, 0x10, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                                                                           0xFF, 0xFE, 0x00, 0x00, 0xE0, 0x7D, 0x31};
+
+    private static readonly byte[] ChecksumEscapeBytePacket = new byte [] {0x7E, 0x00, 0x0F, 0x10, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                                                             0xFF, 0xFE, 0x00, 0x00, 0x74, 0x7D};
     
     [Fact]
     public void XBeeFrameBuilderCtorEscaped()
@@ -176,5 +179,16 @@ public class XbeeFrameTest
         var xbeeFrame = new XbeeFrame(new List<byte>(EscapedTXPacket), true);
         Xunit.Assert.NotNull(xbeeFrame.Data);
         Xunit.Assert.Equal(XbeeFrame.PacketTypeTransmit, xbeeFrame.FrameType);
+    }
+
+    [Fact]
+    public void ChecksumValueIsEscapeBytePacket()
+    {
+        var xbeeFrame = new XbeeFrame(new List<byte>(ChecksumEscapeBytePacket), false);
+        Xunit.Assert.NotNull(xbeeFrame.Data);
+        if (xbeeFrame != null)
+        {
+            Xunit.Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.Data, true));
+        }
     }
 }

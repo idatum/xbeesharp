@@ -20,7 +20,7 @@ public class NodeIdentificationTest
             if (packet != null)
             {
                 Xunit.Assert.Equal(0xC2, packet.ReceiveOptions);
-                Xunit.Assert.Equal(0xFFFE, packet.RemoteNetworkAddress);
+                Xunit.Assert.Equal(XbeeAddress.UseLongNetworkAddress, packet.RemoteNetworkAddress);
                 Xunit.Assert.Equal("0x0013A20012345678", packet.RemoteSourceAddress.AsString());
                 Xunit.Assert.Equal("LH75", packet.NodeIdentifier);
                 Xunit.Assert.Equal(0x01, packet.DeviceType);

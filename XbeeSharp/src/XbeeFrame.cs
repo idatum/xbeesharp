@@ -2,13 +2,12 @@ namespace XbeeSharp;
 
 /// <summary>
 /// XBee API packet.
+/// https://www.digi.com/resources/documentation/digidocs/pdfs/90002002.pdf
 /// </summary>
 public class XbeeFrame
 {
     /// <summary>
-    /// https://www.digi.com/resources/documentation/digidocs/pdfs/90002002.pdf
-    ///
-    // TX request.
+    /// TX request.
     /// </summary>
     public const byte PacketTypeTransmit = 0x10;
     /// <summary>

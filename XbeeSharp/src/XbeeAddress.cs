@@ -21,6 +21,46 @@ public class XbeeAddress
     }
 
     /// <summary>
+    /// Use 16-bit address address value for 64-bit address field.
+    /// </summary>
+    public static readonly XbeeAddress CoordinatorAddress = XbeeAddress.Create(new byte [] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+
+    /// <summary>
+    /// Broadcast address.
+    /// </summary>
+    public static readonly XbeeAddress BroadcastAddress = XbeeAddress.Create(new byte [] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF});
+
+    /// <summary>
+    /// Use 16-bit address address value for 64-bit address field.
+    /// </summary>
+    public static readonly XbeeAddress NetworkAddress = XbeeAddress.Create(new byte [] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+
+    /// <summary>
+    /// 16-bit address for coordinator.
+    /// </summary>
+    public const uint CoordinatorNetworkAddress = 0x0000;
+
+    /// <summary>
+    /// 16-bit broadcast address to all routers.
+    /// </summary>
+    public const uint RouterBroadcastNetworkAddress = 0xFFFC;
+
+    /// <summary>
+    /// 16-bit broadcast address to all non-sleepy devices.
+    /// </summary>
+    public const uint NonSleepBroadcastNetworkAddress = 0xFFFD;
+
+    /// <summary>
+    /// 16-bit address indicating instead use 64-bit address.
+    /// </summary>
+    public const uint UseLongNetworkAddress = 0xFFFE;
+
+    /// <summary>
+    /// 16-bit broadcast address to all devices.
+    /// </summary>
+    public const uint BroadcastNetworkAddress = 0xFFFF;
+
+    /// <summary>
     /// Create from bytes.
     /// </summary>
     public static XbeeAddress Create(IReadOnlyList<byte> address)

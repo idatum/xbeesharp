@@ -87,13 +87,14 @@ public class XbeeSerial
                 }
                 xbeeFrame = xbeeFrameBuilder.ToXbeeFrame();
                 xbeeFrameBuilder.Reset();
-                _logger.LogInformation($"Read frame type 0x{xbeeFrame.FrameType:X2}.");
+                _logger.LogDebug($"Read frame type 0x{xbeeFrame.FrameType:X2}.");
 
                 return xbeeFrame;
             }
         }
 
         _logger.LogInformation("Cancelled.");
+        
         return null;
     }
 }

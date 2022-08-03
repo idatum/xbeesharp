@@ -1,6 +1,8 @@
 namespace XbeeSharp;
 
+using System.Text;
 using System.IO.Ports;
+using Microsoft.Extensions.Logging;
 
 /// <summary>
 /// Communicate with XBee device via serial port.
@@ -8,32 +10,26 @@ using System.IO.Ports;
 public class XbeeSerial
 {
     /// <summary>
-    /// Construct a full frame from bytes read over serial.
+    /// Logging.
     /// </summary>
-    public static async Task<XbeeFrame?> ReadNextFrameAsync(SerialPort serialPort, bool escaped)
+    private ILogger _logger;
+    /// <summary>
+    /// Cancellation token.
+    /// </summary>
+    private CancellationToken _stoppingToken;
+
+    /// <summary>
+    /// Constructor.
+    /// </summary>
+    public XbeeSerial(ILogger logger, CancellationToken stoppingToken)
     {
-        XbeeFrame? xbeeFrame = null;
-        byte [] readBuffer = new byte [1];
-        var xbeeFrameBuilder = new XbeeFrameBuilder(escaped);
-        while (true)
+        if (logger == null)
         {
-            var bytesRead = await serialPort.BaseStream.ReadAsync(readBuffer, 0, 1);
-            if (bytesRead == 0)
-            {
-                return null;
-            }
-            xbeeFrameBuilder.Append(readBuffer[0]);
-            if (xbeeFrameBuilder.FrameComplete)
-            {
-                if (!XbeeFrameBuilder.ChecksumValid(xbeeFrameBuilder.Data, escaped))
-                {
-                    return null;
-                }
-                xbeeFrame = xbeeFrameBuilder.ToXbeeFrame();
-                xbeeFrameBuilder.Reset();
-                return xbeeFrame;
-            }
+            throw new ArgumentNullException("logger");
         }
+
+        _logger = logger;
+        _stoppingToken = stoppingToken;
     }
 
     /// <summary>
@@ -58,5 +54,46 @@ public class XbeeSerial
                 return true;
             }
         }
+    }
+
+    /// <summary>
+    /// Construct a full frame from bytes read over serial.
+    /// </summary>
+    public async Task<XbeeFrame?> ReadNextFrameAsync(SerialPort serialPort, bool escaped)
+    {
+        XbeeFrame? xbeeFrame = null;
+        byte [] readBuffer = new byte [1];
+        var xbeeFrameBuilder = new XbeeFrameBuilder(escaped);
+        while (!_stoppingToken.IsCancellationRequested)
+        {
+            var bytesRead = await serialPort.BaseStream.ReadAsync(readBuffer, 0, 1);
+            if (bytesRead == 0)
+            {
+                _logger.LogError("Zero bytes returned from serial port.");
+                return null;
+            }
+            xbeeFrameBuilder.Append(readBuffer[0]);
+            if (xbeeFrameBuilder.FrameComplete)
+            {
+                if (!XbeeFrameBuilder.ChecksumValid(xbeeFrameBuilder.Data, escaped))
+                {
+                    var frameDataBuilder = new StringBuilder();
+                    foreach (var b in xbeeFrameBuilder.Data)
+                    {
+                        frameDataBuilder.Append($"{b:X2}");
+                    }
+                    _logger.LogError($"Checksum invalid; frame data: {frameDataBuilder.ToString()}");
+                    return null;
+                }
+                xbeeFrame = xbeeFrameBuilder.ToXbeeFrame();
+                xbeeFrameBuilder.Reset();
+                _logger.LogInformation($"Read frame type 0x{xbeeFrame.FrameType:X2}.");
+
+                return xbeeFrame;
+            }
+        }
+
+        _logger.LogInformation("Cancelled.");
+        return null;
     }
 }

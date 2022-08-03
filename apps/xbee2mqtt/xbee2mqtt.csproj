@@ -1,10 +1,12 @@
-<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk.Worker">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
     <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
+    <OutputType>Exe</OutputType>
     <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>dotnet-xbee2mqtt-404e0354-a02a-4373-a01f-ce2d642eb9f8</UserSecretsId>
+    <ServerGarbageCollection>true</ServerGarbageCollection>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +17,7 @@
     <PackageReference Include="MQTTnet" Version="3.1.2" />
     <PackageReference Include="System.IO.Ports" Version="6.0.0" />
   </ItemGroup>
+
   <ItemGroup>
     <None Include="appsettings.json" CopyToPublishDirectory="Always" />
   </ItemGroup>
@@ -24,4 +27,5 @@
   <ItemGroup>
     <ProjectReference Include="..\..\XbeeSharp\XbeeSharp.csproj" />
   </ItemGroup>
+
 </Project>

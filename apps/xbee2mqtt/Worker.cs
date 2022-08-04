@@ -17,7 +17,8 @@ using System.IO.Ports;
 
 public class Worker : BackgroundService
 {
-    private const byte DefaultFrameId = 1;
+    private const byte DefaultTransmitFrameId = 1;
+    private const byte DefaultTransmitATFrameId = 2;
     private IMqttClient? _mqttClient;
     private IConfigurationRoot? _configuration;
     private string _rxTopic = String.Empty;
@@ -122,7 +123,7 @@ public class Worker : BackgroundService
                 var splitTopic = e.ApplicationMessage.Topic.Split('/');
                 var address = splitTopic[splitTopic.Length - 1];
                 var xbeeAddress = XbeeAddress.Create(address);
-                if (!TransmitPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultFrameId, e.ApplicationMessage.Payload, escaped))
+                if (false == TransmitPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultTransmitFrameId, e.ApplicationMessage.Payload, escaped))
                 {
                     _logger.LogError("Could not create transmit packet.");
                     return;
@@ -136,7 +137,7 @@ public class Worker : BackgroundService
                 var command = new byte [] {e.ApplicationMessage.Payload[0], e.ApplicationMessage.Payload[1]};
                 var parameterValue = new List<byte>(e.ApplicationMessage.Payload).GetRange(2, e.ApplicationMessage.Payload.Length - 2);
                 var xbeeAddress = XbeeAddress.Create(address);
-                if (!TransmitATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultFrameId, command, parameterValue, escaped))
+                if (false == TransmitATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultTransmitATFrameId, command, parameterValue, escaped))
                 {
                     _logger.LogError("Could not create remote AT packet.");
                     return;
@@ -149,34 +150,40 @@ public class Worker : BackgroundService
             }
             if (xbeeFrame != null)
             {
-                _logger.LogInformation($"Handled {e.ApplicationMessage.Topic}");
                 await baseStream.WriteAsync(xbeeFrame.Data.ToArray(), 0, xbeeFrame.Data.Count);
+                _logger.LogInformation($"Handled {e.ApplicationMessage.Topic}");
             }
+            _logger.LogDebug($"Topic = {e.ApplicationMessage.Topic}");
+            _logger.LogDebug($"Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
+            _logger.LogDebug($"QoS = {e.ApplicationMessage.QualityOfServiceLevel}");
+            _logger.LogDebug($"Retain = {e.ApplicationMessage.Retain}");
         }
         catch (Exception ex)
         {
             _logger.LogError(ex.ToString());
         }
-        _logger.LogDebug($"Topic = {e.ApplicationMessage.Topic}");
-        _logger.LogDebug($"Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
-        _logger.LogDebug($"QoS = {e.ApplicationMessage.QualityOfServiceLevel}");
-        _logger.LogDebug($"Retain = {e.ApplicationMessage.Retain}");
     }
 
-    private void Configure()
+    private bool Configure()
     {
         _configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.Development.json", optional:true, reloadOnChange:true)
                 .AddJsonFile("appsettings.json", optional:true, reloadOnChange:true)
                 .AddEnvironmentVariables()
                 .Build();
         if (_configuration == null)
         {
             _logger.LogError("Null configuration.");
-            return;
+            return false;
         }
+
+        // Serial port.
         _serialPortName = _configuration["SERIAL_PORT"];
         _serialBaudRate = _configuration.GetValue<int>("SERIAL_BAUD");
+        if (String.IsNullOrEmpty(_serialPortName))
+        {
+            _logger.LogError("No serial port given.");
+            return false;
+        }
 
         // MQTT topics.
         _rxTopic = _configuration["MQTT_RX_TOPIC"];
@@ -187,8 +194,10 @@ public class Worker : BackgroundService
         if (String.IsNullOrEmpty(_rxTopic) || String.IsNullOrEmpty(_txTopic))
         {
             _logger.LogError("No MQTT topic defined.");
-            throw new InvalidOperationException();
+            return false;
         }
+
+        return true;
     }
 
     public Worker(ILogger<Worker> logger)
@@ -198,14 +207,18 @@ public class Worker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        Configure();
-        
-        if (!await ConnectMqtt())
+        if (Configure() == false)
+        {
+            _logger.LogError("Exiting on invalid configuration.");
+            return;
+        }
+
+        if (await ConnectMqtt() == false)
         {
             _logger.LogError("Exiting on failed MQTT connect.");
             return;
         }
-        
+
         const bool escaped = true;
         var serialPort = new SerialPort(_serialPortName, _serialBaudRate);
         serialPort.WriteTimeout = 500;
@@ -274,11 +287,6 @@ public class Worker : BackgroundService
                     throw new InvalidOperationException();
                 }
                 await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes(samples));
-            }
-            // Common known packet types not processed:
-            else if (xbeeFrame.FrameType == XbeeFrame.RouteRecordIndicator)
-            {
-                _logger.LogDebug("Skipping Route Record Indicator packet.");
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeExtendedTransmitStatus)
             {
@@ -353,6 +361,11 @@ public class Worker : BackgroundService
                     throw new InvalidOperationException();
                 }
                 await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes($"{deviceType} 0x{nodeIdentificationPacket.RemoteNetworkAddress:X4} {nodeIdent}"));
+            }
+            // Common known packet types not processed:
+            else if (xbeeFrame.FrameType == XbeeFrame.RouteRecordIndicator)
+            {
+                _logger.LogDebug("Skipping Route Record Indicator packet.");
             }
             else
             {

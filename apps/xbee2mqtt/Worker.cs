@@ -1,7 +1,6 @@
 namespace xbee2mqtt;
 
 using System.Text;
-using System.Diagnostics;
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Client.Connecting;

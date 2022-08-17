@@ -29,176 +29,6 @@ public class Worker : BackgroundService
     private int _serialBaudRate;
     private readonly ILogger<Worker> _logger;
 
-    private void OnPublisherConnected(MqttClientConnectedEventArgs x)
-    {
-        _logger.LogInformation("MQTT connected");
-    }
-
-    private void OnPublisherDisconnected(MqttClientDisconnectedEventArgs x)
-    {
-        _logger.LogInformation("MQTT disconnected");
-    }
-
-    private async Task<bool> ConnectMqtt()
-    {
-        if (_configuration == null)
-        {
-            throw new InvalidOperationException();
-        }
-        var port = _configuration.GetValue<int>("MQTT_PORT");
-        var server = _configuration["MQTT_SERVER"];
-        var clientId = _configuration["MQTT_CLIENT_ID"];
-        var useTls = _configuration.GetValue<bool>("MQTT_USE_TLS");
-        _logger.LogInformation($"Connecting to {server}:{port} with client id {clientId}");
-        var mqttFactory = new MqttFactory();
-        var tlsOptions = new MqttClientTlsOptions
-        {
-            UseTls = useTls
-        };
-        var options = new MqttClientOptions
-        {
-            ClientId = clientId,
-            ProtocolVersion = MqttProtocolVersion.V311,
-            ChannelOptions = new MqttClientTcpOptions
-            {
-                Server = server,
-                Port = port,
-                TlsOptions = tlsOptions
-            }
-        };
-        options.Credentials = new MqttClientCredentials
-        {
-            Username = _configuration["MQTT_USERNAME"],
-            Password = Encoding.UTF8.GetBytes(_configuration["MQTT_PASSWORD"])
-        };
-        options.CleanSession = true;
-        _mqttClient = mqttFactory.CreateMqttClient();
-        _mqttClient.ConnectedHandler = new MqttClientConnectedHandlerDelegate(OnPublisherConnected);
-        _mqttClient.DisconnectedHandler = new MqttClientDisconnectedHandlerDelegate(OnPublisherDisconnected);
-        var connectResult = await _mqttClient.ConnectAsync(options);
-        _logger.LogDebug($"MQTT connect result: {connectResult.ResultCode}");
-
-        if (connectResult.ResultCode != MqttClientConnectResultCode.Success)
-        {
-            _logger.LogError($"MQTT connection failed: {connectResult.ReasonString}");
-            return false;
-        }
-
-        await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"{_txTopic}/#").Build());
-        await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"{_atTopic}/#").Build());
-
-        return true;
-    }
-
-    private async Task DisconnectMqtt()
-    {
-        _logger.LogInformation("Disconnecting MQTT");
-        await _mqttClient.DisconnectAsync();
-    }
-
-    private async Task PublishMessageAsync(string topic, IReadOnlyList<byte> payload)
-    {
-        // QoS 2
-        var message = new MqttApplicationMessageBuilder()
-                            .WithTopic(topic)
-                            .WithPayload(payload)
-                            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.ExactlyOnce)
-                            .Build();
-        _logger.LogInformation($"Publishing {topic}");
-        var pubResult = await _mqttClient.PublishAsync(message);
-        if (pubResult.ReasonCode != MqttClientPublishReasonCode.Success)
-        {
-            _logger.LogError($"Published failed: {pubResult.ReasonString}");
-        }
-    }
-
-    private async Task HandleMessageAsync(MqttApplicationMessageReceivedEventArgs e, Stream baseStream, bool escaped)
-    {
-        try
-        {
-            XbeeFrame? xbeeFrame;
-            if (e.ApplicationMessage.Topic.StartsWith(_txTopic) && e.ApplicationMessage.Payload != null)
-            {
-                var splitTopic = e.ApplicationMessage.Topic.Split('/');
-                var address = splitTopic[splitTopic.Length - 1];
-                var xbeeAddress = XbeeAddress.Create(address);
-                if (false == TransmitPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultTransmitFrameId, e.ApplicationMessage.Payload, escaped))
-                {
-                    _logger.LogError("Could not create transmit packet.");
-                    return;
-                }
-            }
-            else if (e.ApplicationMessage.Topic.StartsWith(_atTopic) && e.ApplicationMessage.Payload != null)
-            {
-                var splitTopic = e.ApplicationMessage.Topic.Split('/');
-                var address = splitTopic[splitTopic.Length - 1];
-                // Payload first two bytes are AT command (e.g. D0), remaining are parameter value (e.g. 0x00 0x05).
-                var command = new byte [] {e.ApplicationMessage.Payload[0], e.ApplicationMessage.Payload[1]};
-                var parameterValue = new List<byte>(e.ApplicationMessage.Payload).GetRange(2, e.ApplicationMessage.Payload.Length - 2);
-                var xbeeAddress = XbeeAddress.Create(address);
-                if (false == TransmitATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultTransmitATFrameId, command, parameterValue, escaped))
-                {
-                    _logger.LogError("Could not create remote AT packet.");
-                    return;
-                }
-            }
-            else
-            {
-                _logger.LogWarning($"Invalid topic and/or paylod: {e.ApplicationMessage.Topic}");
-                return;
-            }
-            if (xbeeFrame != null)
-            {
-                await baseStream.WriteAsync(xbeeFrame.Data.ToArray(), 0, xbeeFrame.Data.Count);
-                _logger.LogInformation($"Handled {e.ApplicationMessage.Topic}");
-            }
-            _logger.LogDebug($"Topic = {e.ApplicationMessage.Topic}");
-            _logger.LogDebug($"Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
-            _logger.LogDebug($"QoS = {e.ApplicationMessage.QualityOfServiceLevel}");
-            _logger.LogDebug($"Retain = {e.ApplicationMessage.Retain}");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex.ToString());
-        }
-    }
-
-    private bool Configure()
-    {
-        _configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional:true, reloadOnChange:true)
-                .AddEnvironmentVariables()
-                .Build();
-        if (_configuration == null)
-        {
-            _logger.LogError("Null configuration.");
-            return false;
-        }
-
-        // Serial port.
-        _serialPortName = _configuration["SERIAL_PORT"];
-        _serialBaudRate = _configuration.GetValue<int>("SERIAL_BAUD");
-        if (String.IsNullOrEmpty(_serialPortName))
-        {
-            _logger.LogError("No serial port given.");
-            return false;
-        }
-
-        // MQTT topics.
-        _rxTopic = _configuration["MQTT_RX_TOPIC"];
-        _txTopic = _configuration["MQTT_TX_TOPIC"];
-        _atTopic = _configuration["MQTT_AT_TOPIC"];
-        _ioTopic = _configuration["MQTT_IO_TOPIC"];
-        _niTopic = _configuration["MQTT_NI_TOPIC"];
-        if (String.IsNullOrEmpty(_rxTopic) || String.IsNullOrEmpty(_txTopic))
-        {
-            _logger.LogError("No MQTT topic defined.");
-            return false;
-        }
-
-        return true;
-    }
-
     public Worker(ILogger<Worker> logger)
     {
         _logger = logger;
@@ -371,5 +201,175 @@ public class Worker : BackgroundService
                 _logger.LogWarning($"Unsupported frame type: {xbeeFrame.FrameType:X2}");
             }
         }
+    }
+    
+    private void OnPublisherConnected(MqttClientConnectedEventArgs x)
+    {
+        _logger.LogInformation("MQTT connected");
+    }
+
+    private void OnPublisherDisconnected(MqttClientDisconnectedEventArgs x)
+    {
+        _logger.LogInformation("MQTT disconnected");
+    }
+
+    private async Task<bool> ConnectMqtt()
+    {
+        if (_configuration == null)
+        {
+            throw new InvalidOperationException();
+        }
+        var port = _configuration.GetValue<int>("MQTT_PORT");
+        var server = _configuration["MQTT_SERVER"];
+        var clientId = _configuration["MQTT_CLIENT_ID"];
+        var useTls = _configuration.GetValue<bool>("MQTT_USE_TLS");
+        _logger.LogInformation($"Connecting to {server}:{port} with client id {clientId}");
+        var mqttFactory = new MqttFactory();
+        var tlsOptions = new MqttClientTlsOptions
+        {
+            UseTls = useTls
+        };
+        var options = new MqttClientOptions
+        {
+            ClientId = clientId,
+            ProtocolVersion = MqttProtocolVersion.V311,
+            ChannelOptions = new MqttClientTcpOptions
+            {
+                Server = server,
+                Port = port,
+                TlsOptions = tlsOptions
+            }
+        };
+        options.Credentials = new MqttClientCredentials
+        {
+            Username = _configuration["MQTT_USERNAME"],
+            Password = Encoding.UTF8.GetBytes(_configuration["MQTT_PASSWORD"])
+        };
+        options.CleanSession = true;
+        _mqttClient = mqttFactory.CreateMqttClient();
+        _mqttClient.ConnectedHandler = new MqttClientConnectedHandlerDelegate(OnPublisherConnected);
+        _mqttClient.DisconnectedHandler = new MqttClientDisconnectedHandlerDelegate(OnPublisherDisconnected);
+        var connectResult = await _mqttClient.ConnectAsync(options);
+        _logger.LogDebug($"MQTT connect result: {connectResult.ResultCode}");
+
+        if (connectResult.ResultCode != MqttClientConnectResultCode.Success)
+        {
+            _logger.LogError($"MQTT connection failed: {connectResult.ReasonString}");
+            return false;
+        }
+
+        await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"{_txTopic}/#").Build());
+        await _mqttClient.SubscribeAsync(new MqttTopicFilterBuilder().WithTopic($"{_atTopic}/#").Build());
+
+        return true;
+    }
+
+    private async Task DisconnectMqtt()
+    {
+        _logger.LogInformation("Disconnecting MQTT");
+        await _mqttClient.DisconnectAsync();
+    }
+
+    private async Task PublishMessageAsync(string topic, IReadOnlyList<byte> payload)
+    {
+        // QoS 2
+        var message = new MqttApplicationMessageBuilder()
+                            .WithTopic(topic)
+                            .WithPayload(payload)
+                            .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.ExactlyOnce)
+                            .Build();
+        _logger.LogInformation($"Publishing {topic}");
+        var pubResult = await _mqttClient.PublishAsync(message);
+        if (pubResult.ReasonCode != MqttClientPublishReasonCode.Success)
+        {
+            _logger.LogError($"Published failed: {pubResult.ReasonString}");
+        }
+    }
+
+    private async Task HandleMessageAsync(MqttApplicationMessageReceivedEventArgs e, Stream baseStream, bool escaped)
+    {
+        try
+        {
+            XbeeFrame? xbeeFrame;
+            if (e.ApplicationMessage.Topic.StartsWith(_txTopic) && e.ApplicationMessage.Payload != null)
+            {
+                var splitTopic = e.ApplicationMessage.Topic.Split('/');
+                var address = splitTopic[splitTopic.Length - 1];
+                var xbeeAddress = XbeeAddress.Create(address);
+                if (false == TransmitPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultTransmitFrameId, e.ApplicationMessage.Payload, escaped))
+                {
+                    _logger.LogError("Could not create transmit packet.");
+                    return;
+                }
+            }
+            else if (e.ApplicationMessage.Topic.StartsWith(_atTopic) && e.ApplicationMessage.Payload != null)
+            {
+                var splitTopic = e.ApplicationMessage.Topic.Split('/');
+                var address = splitTopic[splitTopic.Length - 1];
+                // Payload first two bytes are AT command (e.g. D0), remaining are parameter value (e.g. 0x00 0x05).
+                var command = new byte [] {e.ApplicationMessage.Payload[0], e.ApplicationMessage.Payload[1]};
+                var parameterValue = new List<byte>(e.ApplicationMessage.Payload).GetRange(2, e.ApplicationMessage.Payload.Length - 2);
+                var xbeeAddress = XbeeAddress.Create(address);
+                if (false == TransmitATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultTransmitATFrameId, command, parameterValue, escaped))
+                {
+                    _logger.LogError("Could not create remote AT packet.");
+                    return;
+                }
+            }
+            else
+            {
+                _logger.LogWarning($"Invalid topic and/or paylod: {e.ApplicationMessage.Topic}");
+                return;
+            }
+            if (xbeeFrame != null)
+            {
+                await baseStream.WriteAsync(xbeeFrame.Data.ToArray(), 0, xbeeFrame.Data.Count);
+                _logger.LogInformation($"Handled {e.ApplicationMessage.Topic}");
+            }
+            _logger.LogDebug($"Topic = {e.ApplicationMessage.Topic}");
+            _logger.LogDebug($"Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.Payload)}");
+            _logger.LogDebug($"QoS = {e.ApplicationMessage.QualityOfServiceLevel}");
+            _logger.LogDebug($"Retain = {e.ApplicationMessage.Retain}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex.ToString());
+        }
+    }
+
+    private bool Configure()
+    {
+        _configuration = new ConfigurationBuilder()
+                .AddJsonFile("appsettings.json", optional:true, reloadOnChange:true)
+                .AddEnvironmentVariables()
+                .Build();
+        if (_configuration == null)
+        {
+            _logger.LogError("Null configuration.");
+            return false;
+        }
+
+        // Serial port.
+        _serialPortName = _configuration["SERIAL_PORT"];
+        _serialBaudRate = _configuration.GetValue<int>("SERIAL_BAUD");
+        if (String.IsNullOrEmpty(_serialPortName))
+        {
+            _logger.LogError("No serial port given.");
+            return false;
+        }
+
+        // MQTT topics.
+        _rxTopic = _configuration["MQTT_RX_TOPIC"];
+        _txTopic = _configuration["MQTT_TX_TOPIC"];
+        _atTopic = _configuration["MQTT_AT_TOPIC"];
+        _ioTopic = _configuration["MQTT_IO_TOPIC"];
+        _niTopic = _configuration["MQTT_NI_TOPIC"];
+        if (String.IsNullOrEmpty(_rxTopic) || String.IsNullOrEmpty(_txTopic))
+        {
+            _logger.LogError("No MQTT topic defined.");
+            return false;
+        }
+
+        return true;
     }
 }

@@ -20,12 +20,12 @@ public class Worker : BackgroundService
     private const byte DefaultTransmitATFrameId = 2;
     private IMqttClient? _mqttClient;
     private IConfigurationRoot? _configuration;
-    private string _rxTopic = String.Empty;
-    private string _txTopic = String.Empty;
-    private string _atTopic = String.Empty;
-    private string _ioTopic = String.Empty;
-    private string _niTopic = String.Empty;
-    private string _serialPortName = String.Empty;
+    private string? _rxTopic;
+    private string? _txTopic;
+    private string? _atTopic;
+    private string? _ioTopic;
+    private string? _niTopic;
+    private string? _serialPortName;
     private int _serialBaudRate;
     private readonly ILogger<Worker> _logger;
 
@@ -34,6 +34,7 @@ public class Worker : BackgroundService
         _logger = logger;
     }
 
+    #pragma warning disable CS8604
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         if (Configure() == false)
@@ -63,7 +64,7 @@ public class Worker : BackgroundService
         while (!stoppingToken.IsCancellationRequested)
         {
             XbeeFrame? xbeeFrame = await xbeeSerialAsync.ReadNextFrameAsync(serialPort, escaped);
-            if (xbeeFrame == null)
+            if (xbeeFrame is null)
             {
                 _logger.LogWarning("Partial frame read.");
                 continue;
@@ -72,7 +73,7 @@ public class Worker : BackgroundService
             if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
             {
                 ReceivePacket? receivePacket;
-                if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+                if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket is null)
                 {
                     _logger.LogError("Invalid receive packet.");
                     continue;
@@ -83,7 +84,7 @@ public class Worker : BackgroundService
                 _logger.LogDebug($"RX packet {optionText} from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {data}");
                 
                 var topic = $"{_rxTopic}/{sourceAddress}";
-                if (topic == null)
+                if (topic is null)
                 {
                     _logger.LogError("Null topic.");
                     throw new InvalidOperationException();
@@ -93,7 +94,7 @@ public class Worker : BackgroundService
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
             {
                 ReceiveIOPacket? receivePacket;
-                if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+                if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket is null)
                 {
                     _logger.LogError("Invalid receive IO packet.");
                     continue;
@@ -111,16 +112,16 @@ public class Worker : BackgroundService
                 var samples = sampleBuilder.ToString().Trim();
                 _logger.LogInformation($"RX IO from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {samples}");
                 var topic = $"{_ioTopic}/{sourceAddress}";
-                if (topic == null)
+                if (topic is null)
                 {
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException("topic");
                 }
                 await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes(samples));
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeExtendedTransmitStatus)
             {
                 ExtendedTransmitStatusPacket? extendedTransmitStatus;
-                if (!ExtendedTransmitStatusPacket.Parse(out extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus == null)
+                if (!ExtendedTransmitStatusPacket.Parse(out extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus is null)
                 {
                     _logger.LogError("Invalid extended receive status packet.");
                     continue;
@@ -137,7 +138,7 @@ public class Worker : BackgroundService
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeModemStatus)
             {
                 ModemStatusPacket? modemStatusPacket;
-                if (!ModemStatusPacket.Parse(out modemStatusPacket, xbeeFrame) || modemStatusPacket == null)
+                if (!ModemStatusPacket.Parse(out modemStatusPacket, xbeeFrame) || modemStatusPacket is null)
                 {
                     _logger.LogError("Invalid modem status packet.");
                     continue;
@@ -147,7 +148,7 @@ public class Worker : BackgroundService
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
             {
                 ATCommandResponsePacket? remoteATCommandResponse;
-                if (!ATCommandResponsePacket.Parse(out remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse == null)
+                if (!ATCommandResponsePacket.Parse(out remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse is null)
                 {
                     _logger.LogError("Invalid remote AT response packet.");
                     continue;
@@ -164,7 +165,7 @@ public class Worker : BackgroundService
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeNodeIdentification)
             {
                 NodeIdentificationPacket? nodeIdentificationPacket;
-                if (!NodeIdentificationPacket.Parse(out nodeIdentificationPacket, xbeeFrame) || nodeIdentificationPacket == null)
+                if (!NodeIdentificationPacket.Parse(out nodeIdentificationPacket, xbeeFrame) || nodeIdentificationPacket is null)
                 {
                     _logger.LogError("Invalid node identification packet.");
                     continue;
@@ -185,9 +186,9 @@ public class Worker : BackgroundService
                 }
                 _logger.LogInformation($"Node identification {nodeIdent} {deviceType}: {remoteSourceAddress} {networkAddress}");
                 var topic = $"{_niTopic}/{nodeIdentificationPacket.RemoteSourceAddress.AsString()}";
-                if (topic == null)
+                if (topic is null)
                 {
-                    throw new InvalidOperationException();
+                    throw new InvalidOperationException("topic");
                 }
                 await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes($"{deviceType} 0x{nodeIdentificationPacket.RemoteNetworkAddress:X4} {nodeIdent}"));
             }
@@ -215,9 +216,9 @@ public class Worker : BackgroundService
 
     private async Task<bool> ConnectMqtt()
     {
-        if (_configuration == null)
+        if (_configuration is null)
         {
-            throw new InvalidOperationException();
+            throw new InvalidOperationException("_configuration");
         }
         var port = _configuration.GetValue<int>("MQTT_PORT");
         var server = _configuration["MQTT_SERVER"];
@@ -240,10 +241,11 @@ public class Worker : BackgroundService
                 TlsOptions = tlsOptions
             }
         };
+        var mqtt_password = _configuration["MQTT_PASSWORD"] ?? String.Empty;
         options.Credentials = new MqttClientCredentials
         {
             Username = _configuration["MQTT_USERNAME"],
-            Password = Encoding.UTF8.GetBytes(_configuration["MQTT_PASSWORD"])
+            Password = Encoding.UTF8.GetBytes(mqtt_password)
         };
         options.CleanSession = true;
         _mqttClient = mqttFactory.CreateMqttClient();
@@ -291,7 +293,7 @@ public class Worker : BackgroundService
         try
         {
             XbeeFrame? xbeeFrame;
-            if (e.ApplicationMessage.Topic.StartsWith(_txTopic) && e.ApplicationMessage.Payload != null)
+            if (e.ApplicationMessage.Topic.StartsWith(_txTopic) && e.ApplicationMessage.Payload is not null)
             {
                 var splitTopic = e.ApplicationMessage.Topic.Split('/');
                 var address = splitTopic[splitTopic.Length - 1];
@@ -302,7 +304,7 @@ public class Worker : BackgroundService
                     return;
                 }
             }
-            else if (e.ApplicationMessage.Topic.StartsWith(_atTopic) && e.ApplicationMessage.Payload != null)
+            else if (e.ApplicationMessage.Topic.StartsWith(_atTopic) && e.ApplicationMessage.Payload is not null)
             {
                 var splitTopic = e.ApplicationMessage.Topic.Split('/');
                 var address = splitTopic[splitTopic.Length - 1];
@@ -321,7 +323,7 @@ public class Worker : BackgroundService
                 _logger.LogWarning($"Invalid topic and/or paylod: {e.ApplicationMessage.Topic}");
                 return;
             }
-            if (xbeeFrame != null)
+            if (xbeeFrame is not null)
             {
                 await baseStream.WriteAsync(xbeeFrame.Data.ToArray(), 0, xbeeFrame.Data.Count);
                 _logger.LogInformation($"Handled {e.ApplicationMessage.Topic}");
@@ -343,7 +345,7 @@ public class Worker : BackgroundService
                 .AddJsonFile("appsettings.json", optional:true, reloadOnChange:true)
                 .AddEnvironmentVariables()
                 .Build();
-        if (_configuration == null)
+        if (_configuration is null)
         {
             _logger.LogError("Null configuration.");
             return false;
@@ -364,9 +366,13 @@ public class Worker : BackgroundService
         _atTopic = _configuration["MQTT_AT_TOPIC"];
         _ioTopic = _configuration["MQTT_IO_TOPIC"];
         _niTopic = _configuration["MQTT_NI_TOPIC"];
-        if (String.IsNullOrEmpty(_rxTopic) || String.IsNullOrEmpty(_txTopic))
+        if (String.IsNullOrEmpty(_rxTopic) ||
+            String.IsNullOrEmpty(_txTopic) ||
+            String.IsNullOrEmpty(_atTopic) ||
+            String.IsNullOrEmpty(_ioTopic) ||
+            String.IsNullOrEmpty(_niTopic))
         {
-            _logger.LogError("No MQTT topic defined.");
+            _logger.LogError("Null configuration.");
             return false;
         }
 

@@ -14,14 +14,14 @@ while (true)
     XbeeFrame? xbeeFrame;
     if (XbeeSerial.TryReadNextFrame(out xbeeFrame, serialPort, Escaped))
     {
-        if (xbeeFrame == null)
+        if (xbeeFrame is null)
         {
             continue;
         }
         if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
         {
             ReceivePacket? receivePacket;
-            if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+            if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket is null)
             {
                 Console.WriteLine("Invalid receive packet.");
                 continue;
@@ -35,7 +35,7 @@ while (true)
         else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
         {
             ReceiveIOPacket? receivePacket;
-            if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket == null)
+            if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket is null)
             {
                 Console.WriteLine("Invalid receive IO packet.");
                 continue;

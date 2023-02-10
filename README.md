@@ -44,6 +44,6 @@ while (!cancellationToken.IsCancellationRequested)
 
 [XBee/XBee-PRO® S2C Zigbee® RF Module User Guide](https://www.digi.com/resources/documentation/digidocs/pdfs/90002002.pdf)
 
-[.NET 6 on Rapsberry Pi](https://docs.microsoft.com/en-us/dotnet/iot/deployment)
+[Deploy .NET apps to Raspberry Pi](https://docs.microsoft.com/en-us/dotnet/iot/deployment)
 
 [MyQ Alternatives](https://community.home-assistant.io/t/myq-alternatives/261805) discussion in Home Assistant Community.

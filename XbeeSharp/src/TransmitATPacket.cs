@@ -11,7 +11,7 @@ public static class TransmitATPacket
     public static bool CreateXbeeFrame(out XbeeFrame? xbeeFrame, XbeeAddress address, byte frameId,
                                        byte[] command, IReadOnlyList<byte> parameterValue, bool escaped)
     {
-        if (command == null || command.Length != 2)
+        if (command is null || command.Length != 2)
         {
             throw new ArgumentException("command");
         }
@@ -66,7 +66,7 @@ public static class TransmitATPacket
             throw new InvalidOperationException();
         }
         xbeeFrame = new XbeeFrame(rawData, escaped);
-        if (xbeeFrame == null)
+        if (xbeeFrame is null)
         {
             return false;
         }

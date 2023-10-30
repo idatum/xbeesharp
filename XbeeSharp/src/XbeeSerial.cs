@@ -23,7 +23,7 @@ public class XbeeSerial
     /// </summary>
     public XbeeSerial(ILogger logger, CancellationToken stoppingToken)
     {
-        if (logger == null)
+        if (logger is null)
         {
             throw new ArgumentNullException("logger");
         }

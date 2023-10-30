@@ -65,7 +65,7 @@ public class XbeeAddress
     /// </summary>
     public static XbeeAddress Create(IReadOnlyList<byte> address)
     {
-        if (address == null || address.Count != 8)
+        if (address is null || address.Count != 8)
         {
             throw new ArgumentException("address");
         }
@@ -80,7 +80,7 @@ public class XbeeAddress
     {
         // Expecting format like 0x0013010203040506
 
-        if (address == null || address.Length != 18)
+        if (address is null || address.Length != 18)
         {
             throw new ArgumentException("address");
         }

@@ -2,7 +2,7 @@ namespace XbeeTests;
 
 public class ModemStatusTest
 {
-    private static byte [] ValidPacket = new byte [] {0x7E, 0x00, 0x02, 0x8A, 0x00, 0x75};
+    private static byte[] ValidPacket = new byte[] { 0x7E, 0x00, 0x02, 0x8A, 0x00, 0x75 };
 
     [Fact]
     public void CreateWithExpectedFields()

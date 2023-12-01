@@ -8,7 +8,7 @@ public class ReceivePacketTests
                                                                0x43, 0x21, 0x56, 0x14, 0x01, 0x54, 0x78, 0x44, 0x61, 0x74, 0x61, 0xB9};
     private const string SourceAddress = "0x0013A20087654321";
     private const string ReceiveData = "TxData";
-    
+
     [Fact]
     public void ValidPacketUnescaped()
     {

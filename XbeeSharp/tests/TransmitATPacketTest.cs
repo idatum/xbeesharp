@@ -3,7 +3,7 @@ namespace XbeeTests;
 public class TransmitATPacketTest
 {
     // 0x0013010203040506
-    static readonly XbeeAddress Address = XbeeAddress.Create(new byte [] {0x00, 0x13, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06});
+    static readonly XbeeAddress Address = XbeeAddress.Create(new byte[] { 0x00, 0x13, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 });
     // Pin D0 on (0x0005)
     static readonly byte[] PinOnFrameEscaped = {0x7E, 0x00, 0x7D, 0x31, 0x17, 0x01, 0x00, 0x7D, 0x33, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06,
                                                 0xFF, 0xFE, 0x02, 0x44, 0x30, 0x00, 0x05, 0x47};
@@ -19,7 +19,7 @@ public class TransmitATPacketTest
     public void PinOnPacketEscaped()
     {
         XbeeFrame? xbeeFrame;
-        Xunit.Assert.True(TransmitATPacket.CreateXbeeFrame(out xbeeFrame, Address, 1, new byte [] {0x44, 0x30}, new byte [] {0x00, 0x05}, true));
+        Xunit.Assert.True(TransmitATPacket.CreateXbeeFrame(out xbeeFrame, Address, 1, new byte[] { 0x44, 0x30 }, new byte[] { 0x00, 0x05 }, true));
         Xunit.Assert.NotNull(xbeeFrame);
         if (xbeeFrame != null)
         {

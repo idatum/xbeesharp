@@ -80,7 +80,7 @@ public class ReceiveIOPacket : ReceiveBasePacket
         // Analog samples
         var analogSamples = new List<(int Adc, ushort Value)>();
         var analogOffset = digitalSamples.Count > 0 ? 21 : 19;
-        foreach (var i in new int [] {0, 1, 2, 3, 7})
+        foreach (var i in new int[] { 0, 1, 2, 3, 7 })
         {
             var mask = 0x01 << i;
             if (0 != (mask & analogChannelMask))

@@ -1,5 +1,5 @@
 namespace XbeeSharp;
- 
+
 using System.Text;
 
 /// <summary>
@@ -23,17 +23,17 @@ public class XbeeAddress
     /// <summary>
     /// Use 16-bit address address value for 64-bit address field.
     /// </summary>
-    public static readonly XbeeAddress CoordinatorAddress = XbeeAddress.Create(new byte [] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    public static readonly XbeeAddress CoordinatorAddress = XbeeAddress.Create(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
 
     /// <summary>
     /// Broadcast address.
     /// </summary>
-    public static readonly XbeeAddress BroadcastAddress = XbeeAddress.Create(new byte [] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF});
+    public static readonly XbeeAddress BroadcastAddress = XbeeAddress.Create(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF });
 
     /// <summary>
     /// Use 16-bit address address value for 64-bit address field.
     /// </summary>
-    public static readonly XbeeAddress NetworkAddress = XbeeAddress.Create(new byte [] {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF});
+    public static readonly XbeeAddress NetworkAddress = XbeeAddress.Create(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
 
     /// <summary>
     /// 16-bit address for coordinator.

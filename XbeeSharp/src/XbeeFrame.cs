@@ -108,7 +108,7 @@ public class XbeeFrame
             }
         }
         // Move to second data length byte.
-        ++ dataOffset;
+        ++dataOffset;
         if (data[dataOffset] == XbeeFrame.EscapeByte)
         {
             // Skip escape byte.
@@ -131,7 +131,7 @@ public class XbeeFrame
     {
         get => _escaped;
     }
-    
+
     /// <summary>
     /// All frame data.
     /// </summary>

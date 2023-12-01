@@ -84,7 +84,7 @@ public class Worker : BackgroundService
             }
         }
     }
-    
+
     private async Task ProcessExecuteAsync(CancellationToken stoppingToken)
     {
         if (await ConnectMqtt() == false)
@@ -133,7 +133,7 @@ public class Worker : BackgroundService
                 var optionText = receivePacket.ReceiveOptions == 1 ? "with response" : "broadcast";
                 var data = Encoding.Default.GetString(receivePacket.ReceiveData.ToArray());
                 _logger.LogDebug($"RX packet {optionText} from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {data}");
-                
+
                 var topic = $"{_rxTopic}/{sourceAddress}";
                 if (topic is null)
                 {
@@ -376,7 +376,7 @@ public class Worker : BackgroundService
                 var splitTopic = e.ApplicationMessage.Topic.Split('/');
                 var address = splitTopic[splitTopic.Length - 1];
                 // Payload first two bytes are AT command (e.g. D0), remaining are parameter value (e.g. 0x00 0x05).
-                var command = new byte [] {e.ApplicationMessage.PayloadSegment[0], e.ApplicationMessage.PayloadSegment[1]};
+                var command = new byte[] { e.ApplicationMessage.PayloadSegment[0], e.ApplicationMessage.PayloadSegment[1] };
                 var parameterValue = new List<byte>(e.ApplicationMessage.PayloadSegment).GetRange(2, e.ApplicationMessage.PayloadSegment.Count - 2);
                 var xbeeAddress = XbeeAddress.Create(address);
                 if (false == TransmitATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultTransmitATFrameId, command, parameterValue, escaped))

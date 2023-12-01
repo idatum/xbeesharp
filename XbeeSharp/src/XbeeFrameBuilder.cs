@@ -212,7 +212,7 @@ public class XbeeFrameBuilder
             {
                 _dataLength = 0xff * _data[1] + _data[2];
             }
-            
+
             return _dataLength == (_data.Count - 4);
         }
     }

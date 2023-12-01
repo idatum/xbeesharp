@@ -31,7 +31,7 @@ public static class TransmitATPacket
             ++dataLen;
         }
         // short address.
-        foreach (var b in new byte[] {0xFF, 0xFE})
+        foreach (var b in new byte[] { 0xFF, 0xFE })
         {
             XbeeFrameBuilder.AppendWithEscape(escaped, rawData, b);
             ++dataLen;

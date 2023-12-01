@@ -4,8 +4,8 @@ using System.Text;
 
 public class TransmitPacketTest
 {
-    private static readonly XbeeAddress Address = XbeeAddress.Create(new byte [] {0x00, 0x13, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06});
-    private static readonly XbeeAddress EmptyAddress = XbeeAddress.Create(new byte [] {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00});
+    private static readonly XbeeAddress Address = XbeeAddress.Create(new byte[] { 0x00, 0x13, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06 });
+    private static readonly XbeeAddress EmptyAddress = XbeeAddress.Create(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
 
     [Fact]
     public void LargePayloadUnescaped()
@@ -32,7 +32,7 @@ public class TransmitPacketTest
     {
         XbeeFrame? xbeeFrame;
         // Escaped checksum should be: 0x7D, 0x31
-        Xunit.Assert.True(TransmitPacket.CreateXbeeFrame(out xbeeFrame, EmptyAddress, 1, new byte [] {0xE0}, true));
+        Xunit.Assert.True(TransmitPacket.CreateXbeeFrame(out xbeeFrame, EmptyAddress, 1, new byte[] { 0xE0 }, true));
         if (xbeeFrame != null)
         {
             // Array length should include extra escape byte (0x7D).

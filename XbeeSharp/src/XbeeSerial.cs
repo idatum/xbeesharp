@@ -62,7 +62,7 @@ public class XbeeSerial
     public async Task<XbeeFrame?> ReadNextFrameAsync(SerialPort serialPort, bool escaped)
     {
         XbeeFrame? xbeeFrame = null;
-        byte [] readBuffer = new byte [1];
+        byte[] readBuffer = new byte[1];
         var xbeeFrameBuilder = new XbeeFrameBuilder(escaped);
         while (!_stoppingToken.IsCancellationRequested)
         {
@@ -94,7 +94,7 @@ public class XbeeSerial
         }
 
         _logger.LogInformation("Cancelled.");
-        
+
         return null;
     }
 }

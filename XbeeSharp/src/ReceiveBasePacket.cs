@@ -3,7 +3,7 @@ namespace XbeeSharp;
 /// <summary>
 /// Common receive packet fields.
 /// </summary>
-public abstract class ReceiveBasePacket    
+public abstract class ReceiveBasePacket
 {
     /// <summary>
     /// Underlying XBee frame.
@@ -44,7 +44,7 @@ public abstract class ReceiveBasePacket
     {
         get => _xbeeFrame;
     }
-    
+
     /// <summary>
     /// 64bit source address.
     /// </summary>

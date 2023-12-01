@@ -62,7 +62,7 @@ public class ATCommandResponsePacket
         // Network address.
         ushort networkAddress = XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[13], xbeeFrame.Data[14]);
         // AT command.
-        var command = new string(new char [] {(char)xbeeFrame.Data[15], (char)xbeeFrame.Data[16]});
+        var command = new string(new char[] { (char)xbeeFrame.Data[15], (char)xbeeFrame.Data[16] });
         // Command status
         byte commandStatus = xbeeFrame.Data[17];
 

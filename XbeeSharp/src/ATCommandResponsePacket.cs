@@ -8,27 +8,27 @@ public class ATCommandResponsePacket
     /// <summary>
     /// Underlying XBee frame.
     /// </summary>
-    private XbeeFrame _xbeeFrame;
+    private readonly XbeeFrame _xbeeFrame;
     /// <summary>
     /// Frame ID.
     /// </summary>
-    private byte _frameId;
+    private readonly byte _frameId;
     /// <summary>
     /// Source address.
     /// </summary>
-    private XbeeAddress _sourceAddress;
+    private readonly XbeeAddress _sourceAddress;
     /// <summary>
     /// Network address.
     /// <summary>
-    private ushort _networkAddress;
+    private readonly ushort _networkAddress;
     /// <summary>
     /// AT command.
     /// </summary>
-    private string _command;
+    private readonly string _command;
     /// <summary>
     /// Delivery status.
     /// </summary>
-    private byte _commandStatus;
+    private readonly byte _commandStatus;
 
     /// <summary>
     /// Constructor.

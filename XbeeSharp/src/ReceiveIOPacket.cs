@@ -8,19 +8,19 @@ public class ReceiveIOPacket : ReceiveBasePacket
     /// <summary>
     /// Digital sample mask.
     /// </summary>
-    private ushort _digitalChannelMask;
+    private readonly ushort _digitalChannelMask;
     /// <summary>
     /// Analog sample mask.
     /// </summary>
-    private byte _analogChannelMask;
+    private readonly byte _analogChannelMask;
     /// <summary>
     /// Digital samples.
     /// </summary>
-    private IReadOnlyList<(int Dio, bool Value)> _digitalSamples;
+    private readonly IReadOnlyList<(int Dio, bool Value)> _digitalSamples;
     /// <summary>
     /// Analog samples.
     /// </summary>
-    private IReadOnlyList<(int Adc, ushort Value)> _analogSamples;
+    private readonly IReadOnlyList<(int Adc, ushort Value)> _analogSamples;
 
     /// <summary>
     /// Constructor.
@@ -67,10 +67,10 @@ public class ReceiveIOPacket : ReceiveBasePacket
         ushort digitalValues = digitalChannelMask > 0 ? XbeeFrameBuilder.ToBigEndian(xbeeFrame.Data[19], xbeeFrame.Data[20]) : (ushort)0;
         for (var i = 0; i < 15; ++i)
         {
-            var mask = ((ushort)1 << i) & digitalChannelMask;
+            var mask = (1 << i) & digitalChannelMask;
             if (mask > 0)
             {
-                bool bitVal = (digitalValues & mask) > 0 ? true : false;
+                bool bitVal = (digitalValues & mask) > 0;
                 {
                     var sample = (Dio: i, Value: bitVal);
                     digitalSamples.Add(sample);

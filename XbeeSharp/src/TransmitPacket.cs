@@ -13,13 +13,15 @@ public static class TransmitPacket
     {
         if (data is null)
         {
-            throw new ArgumentException("data");
+            throw new ArgumentException(null, nameof(data));
         }
         xbeeFrame = null;
         ushort dataLen = 0;
-        var rawData = new List<byte>();
-        // Packet type
-        rawData.Add(XbeeFrame.PacketTypeTransmit);
+        var rawData = new List<byte>
+        {
+            // Packet type
+            XbeeFrame.PacketTypeTransmit
+        };
         ++dataLen;
         // Frame ID
         rawData.Add(frameId);
@@ -52,8 +54,7 @@ public static class TransmitPacket
         // Start byte and big endian data length.
         byte dataLenHi = (byte)(dataLen >> 8);
         byte dataLenLo = (byte)(dataLen & 0xFF);
-        List<byte> prefix = new List<byte>();
-        prefix.Add(XbeeFrame.StartByte);
+        List<byte> prefix = [XbeeFrame.StartByte];
         XbeeFrameBuilder.AppendWithEscape(escaped, prefix, dataLenHi);
         XbeeFrameBuilder.AppendWithEscape(escaped, prefix, dataLenLo);
         rawData.InsertRange(0, prefix);

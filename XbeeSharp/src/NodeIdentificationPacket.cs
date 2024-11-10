@@ -14,19 +14,19 @@ public class NodeIdentificationPacket : ReceiveBasePacket
     /// <summary>
     /// Remote network address.
     /// <summary>
-    private ushort _remoteNetworkAddress;
+    private readonly ushort _remoteNetworkAddress;
     /// <summary>
     /// Remote source address.
     /// </summary>
-    private XbeeAddress _remoteSourceAddress;
+    private readonly XbeeAddress _remoteSourceAddress;
     /// <summar>
     /// Node identifier.
     /// </summary>
-    private string _nodeIdentifier;
+    private readonly string _nodeIdentifier;
     /// <summary>
     /// Network device type.
     /// </summary>
-    private byte _deviceType;
+    private readonly byte _deviceType;
 
     /// <summary>
     /// Constructor.

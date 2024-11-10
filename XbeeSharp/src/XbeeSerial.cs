@@ -12,11 +12,11 @@ public class XbeeSerial
     /// <summary>
     /// Logging.
     /// </summary>
-    private ILogger _logger;
+    private readonly ILogger _logger;
     /// <summary>
     /// Cancellation token.
     /// </summary>
-    private CancellationToken _stoppingToken;
+    private readonly CancellationToken _stoppingToken;
 
     /// <summary>
     /// Constructor.
@@ -25,7 +25,7 @@ public class XbeeSerial
     {
         if (logger is null)
         {
-            throw new ArgumentNullException("logger");
+            throw new ArgumentNullException(nameof(logger));
         }
 
         _logger = logger;
@@ -61,7 +61,6 @@ public class XbeeSerial
     /// </summary>
     public async Task<XbeeFrame?> ReadNextFrameAsync(SerialPort serialPort, bool escaped)
     {
-        XbeeFrame? xbeeFrame = null;
         byte[] readBuffer = new byte[1];
         var xbeeFrameBuilder = new XbeeFrameBuilder(escaped);
         while (!_stoppingToken.IsCancellationRequested)
@@ -82,10 +81,10 @@ public class XbeeSerial
                     {
                         frameDataBuilder.Append($"{b:X2}");
                     }
-                    _logger.LogError($"Checksum invalid; frame data: {frameDataBuilder.ToString()}");
+                    _logger.LogError($"Checksum invalid; frame data: {frameDataBuilder}");
                     return null;
                 }
-                xbeeFrame = xbeeFrameBuilder.ToXbeeFrame();
+                XbeeFrame? xbeeFrame = xbeeFrameBuilder.ToXbeeFrame();
                 xbeeFrameBuilder.Reset();
                 _logger.LogDebug($"Read frame type 0x{xbeeFrame.FrameType:X2}.");
 

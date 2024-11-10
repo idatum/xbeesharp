@@ -23,17 +23,17 @@ public class XbeeAddress
     /// <summary>
     /// Use 16-bit address address value for 64-bit address field.
     /// </summary>
-    public static readonly XbeeAddress CoordinatorAddress = XbeeAddress.Create(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00 });
+    public static readonly XbeeAddress CoordinatorAddress = XbeeAddress.Create([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00]);
 
     /// <summary>
     /// Broadcast address.
     /// </summary>
-    public static readonly XbeeAddress BroadcastAddress = XbeeAddress.Create(new byte[] { 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF });
+    public static readonly XbeeAddress BroadcastAddress = XbeeAddress.Create([0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF]);
 
     /// <summary>
     /// Use 16-bit address address value for 64-bit address field.
     /// </summary>
-    public static readonly XbeeAddress NetworkAddress = XbeeAddress.Create(new byte[] { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF });
+    public static readonly XbeeAddress NetworkAddress = XbeeAddress.Create([0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]);
 
     /// <summary>
     /// 16-bit address for coordinator.
@@ -67,7 +67,7 @@ public class XbeeAddress
     {
         if (address is null || address.Count != 8)
         {
-            throw new ArgumentException("address");
+            throw new ArgumentException(null, nameof(address));
         }
 
         return new XbeeAddress(address);
@@ -82,7 +82,7 @@ public class XbeeAddress
 
         if (address is null || address.Length != 18)
         {
-            throw new ArgumentException("address");
+            throw new ArgumentException(null, nameof(address));
         }
 
         var createAddress = new List<byte>(8);

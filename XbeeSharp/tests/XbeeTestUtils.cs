@@ -5,7 +5,7 @@ public static class XbeeTestUtils
     public static XbeeFrame? CreateFrameFromBuilder(IReadOnlyList<byte> packet, bool escaped)
     {
         var xbeeFrameBuilder = new XbeeFrameBuilder(escaped);
-        Xunit.Assert.Equal(packet[0], XbeeFrame.StartByte);
+        Assert.Equal(XbeeFrame.StartByte, packet[0]);
         XbeeFrame? xbeeFrame = null;
         foreach (var nextByte in packet)
         {

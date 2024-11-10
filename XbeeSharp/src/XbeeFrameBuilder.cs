@@ -8,7 +8,7 @@ public class XbeeFrameBuilder
     /// <summary>
     /// Frame data.
     /// </summary>
-    private List<byte> _data = new();
+    private List<byte> _data = [];
     /// <summary>
     /// Whether to expect escape byte in data.
     /// </summary>
@@ -182,7 +182,7 @@ public class XbeeFrameBuilder
         }
         else
         {
-            _data.Add((byte)nextByte);
+            _data.Add(nextByte);
         }
         // Indicate same partial frame.
         return true;
@@ -235,7 +235,7 @@ public class XbeeFrameBuilder
     /// </summary>
     public void Reset()
     {
-        _data = new List<byte>();
+        _data = [];
         _dataLength = 0;
         _escapeNextByte = false;
     }
@@ -247,7 +247,7 @@ public class XbeeFrameBuilder
     {
         if (!escaped)
         {
-            return XbeeFrameBuilder.ToBigEndian(data[1], data[2]);
+            return ToBigEndian(data[1], data[2]);
         }
 
         byte dataLenHi = 0;
@@ -264,7 +264,7 @@ public class XbeeFrameBuilder
             ++dataLenOffset;
             dataLenLo = (byte)(0x20 ^ data[dataLenOffset]);
         }
-        var dataLen = XbeeFrameBuilder.ToBigEndian(dataLenHi, dataLenLo);
+        var dataLen = ToBigEndian(dataLenHi, dataLenLo);
 
         return dataLen;
     }

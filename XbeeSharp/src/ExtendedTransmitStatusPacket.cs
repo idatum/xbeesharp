@@ -8,27 +8,27 @@ public class ExtendedTransmitStatusPacket
     /// <summary>
     /// Underlying XBee frame.
     /// </summary>
-    private XbeeFrame _xbeeFrame;
+    private readonly XbeeFrame _xbeeFrame;
     /// <summary>
     /// Frame ID.
     /// </summary>
-    private byte _frameId;
+    private readonly byte _frameId;
     /// <summary>
     /// Network address.
     /// <summary>
-    private ushort _networkAddress;
+    private readonly ushort _networkAddress;
     /// <summary>
     /// Transmit retry count.
     /// </summary>
-    private byte _transmitRetryCount;
+    private readonly byte _transmitRetryCount;
     /// <summary>
     /// Delivery status.
     /// </summary>
-    private byte _deliveryStatus;
+    private readonly byte _deliveryStatus;
     /// <summary>
     /// Discovery status.
     /// </summary>
-    private byte _discoveryStatus;
+    private readonly byte _discoveryStatus;
 
     /// <summary>
     /// Constructor.

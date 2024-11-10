@@ -3,39 +3,28 @@ namespace XbeeSharp;
 /// <summary>
 /// Common receive packet fields.
 /// </summary>
-public abstract class ReceiveBasePacket
+/// <remarks>
+/// Constructor.
+/// </remarks>
+public abstract class ReceiveBasePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
+                            ushort networkAddress, byte receiveOptions)
 {
     /// <summary>
     /// Underlying XBee frame.
     /// </summary>
-    protected XbeeFrame _xbeeFrame;
+    protected XbeeFrame _xbeeFrame = xbeeFrame;
     /// <summary>
     /// 64bit source address.
     /// </summary>
-    protected XbeeAddress _sourceAddress;
+    protected XbeeAddress _sourceAddress = XbeeAddress.Create(sourceAddress);
     /// <summary>
     /// Network address.
     /// </summary>
-    protected ushort _networkAddress;
+    protected ushort _networkAddress = networkAddress;
     /// <summary>
     /// Receive options bit field.
     /// </summary>
-    protected byte _receiveOptions;
-    /// <summary>
-    /// Receive data.
-    /// </summary>
-
-    /// <summary>
-    /// Constructor.
-    /// </summary>
-    protected ReceiveBasePacket(XbeeFrame xbeeFrame, IReadOnlyList<byte> sourceAddress,
-                                ushort networkAddress, byte receiveOptions)
-    {
-        _xbeeFrame = xbeeFrame;
-        _sourceAddress = XbeeAddress.Create(sourceAddress);
-        _networkAddress = networkAddress;
-        _receiveOptions = receiveOptions;
-    }
+    protected byte _receiveOptions = receiveOptions;
 
     /// <summary>
     /// Underlying XBee frame.

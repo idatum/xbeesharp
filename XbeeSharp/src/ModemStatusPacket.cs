@@ -8,11 +8,11 @@ public class ModemStatusPacket
     /// <summary>
     /// Underlying XBee frame.
     /// </summary>
-    private XbeeFrame _xbeeFrame;
+    private readonly XbeeFrame _xbeeFrame;
     /// <summary>
     /// Modem status.
     /// </summary>
-    private byte _modemStatus;
+    private readonly byte _modemStatus;
 
     /// <summary>
     /// Constructor.

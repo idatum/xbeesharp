@@ -8,7 +8,7 @@ public class ReceivePacket : ReceiveBasePacket
     /// <summary>
     /// Receive data.
     /// </summary>
-    private IReadOnlyList<byte> _receiveData;
+    private readonly IReadOnlyList<byte> _receiveData;
 
     /// <summary>
     /// Constructor.
@@ -29,7 +29,7 @@ public class ReceivePacket : ReceiveBasePacket
         packet = null;
         const int DataOffset = 15;
 
-        if (xbeeFrame.FrameType != ReceivePacket.FrameType ||
+        if (xbeeFrame.FrameType != FrameType ||
             xbeeFrame.FrameDataLength <= DataOffset)
         {
             return false;

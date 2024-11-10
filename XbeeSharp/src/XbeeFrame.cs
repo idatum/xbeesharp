@@ -4,7 +4,10 @@ namespace XbeeSharp;
 /// XBee API packet.
 /// https://www.digi.com/resources/documentation/digidocs/pdfs/90002002.pdf
 /// </summary>
-public class XbeeFrame
+/// <remarks>
+/// Construct from packet data.
+/// </remarks>
+public class XbeeFrame(List<byte> data, bool escaped)
 {
     /// <summary>
     /// TX request.
@@ -61,31 +64,19 @@ public class XbeeFrame
     /// <summary>
     /// Full packet.
     /// </summary>
-    private List<byte> _data;
+    private readonly List<byte> _data = data;
     /// <summary>
     /// Checksum
     /// </summary>
-    private byte _checksum;
+    private readonly byte _checksum = data[^1];
     /// <summary>
     /// Data length.
     /// </summary>
-    private int _frameDataLength;
+    private readonly int _frameDataLength = XbeeFrameBuilder.ToBigEndian(data[1], data[2]);
     /// <summary>
     /// API frame escaped.
     /// </summary>
-    private bool _escaped;
-
-    /// <summary>
-    /// Construct from packet data.
-    /// </summary>
-    public XbeeFrame(List<byte> data, bool escaped)
-    {
-        _data = data;
-        // Big-endian
-        _frameDataLength = XbeeFrameBuilder.ToBigEndian(data[1], data[2]);
-        _checksum = data[data.Count - 1];
-        _escaped = escaped;
-    }
+    private readonly bool _escaped = escaped;
 
     /// <summary>
     /// Find offset of start of frame data (first byte after length).
@@ -98,7 +89,7 @@ public class XbeeFrame
         }
         // Start at first data length byte.
         var dataOffset = 1;
-        if (data[dataOffset] == XbeeFrame.EscapeByte)
+        if (data[dataOffset] == EscapeByte)
         {
             // Skip escape byte.
             ++dataOffset;
@@ -109,7 +100,7 @@ public class XbeeFrame
         }
         // Move to second data length byte.
         ++dataOffset;
-        if (data[dataOffset] == XbeeFrame.EscapeByte)
+        if (data[dataOffset] == EscapeByte)
         {
             // Skip escape byte.
             ++dataOffset;

@@ -13,13 +13,15 @@ public static class TransmitATPacket
     {
         if (command is null || command.Length != 2)
         {
-            throw new ArgumentException("command");
+            throw new ArgumentException(null, nameof(command));
         }
         xbeeFrame = null;
         ushort dataLen = 0;
-        var rawData = new List<byte>();
-        // Packet type
-        rawData.Add(XbeeFrame.PacketTypeRemoteAT);
+        var rawData = new List<byte>
+        {
+            // Packet type
+            XbeeFrame.PacketTypeRemoteAT
+        };
         ++dataLen;
         // Frame ID
         rawData.Add(frameId);
@@ -53,8 +55,10 @@ public static class TransmitATPacket
         // Start byte and big endian data length (includes escape bytes).
         byte dataLenHi = (byte)(dataLen >> 8);
         byte dataLenLo = (byte)(dataLen & 0xFF);
-        var prefix = new List<byte>();
-        prefix.Add(XbeeFrame.StartByte);
+        var prefix = new List<byte>
+        {
+            XbeeFrame.StartByte
+        };
         XbeeFrameBuilder.AppendWithEscape(escaped, prefix, dataLenHi);
         XbeeFrameBuilder.AppendWithEscape(escaped, prefix, dataLenLo);
         rawData.InsertRange(0, prefix);

@@ -29,19 +29,13 @@ public class Worker : BackgroundService
     public Worker(IConfiguration configuration,
                   ILogger<Worker> logger)
     {
-        if (configuration is null)
-        {
-            throw new ArgumentNullException(nameof(configuration));
-        }
-        if (logger is null)
-        {
-            throw new ArgumentNullException(nameof(logger));
-        }
+        ArgumentNullException.ThrowIfNull(configuration);
+        ArgumentNullException.ThrowIfNull(logger);
         _configuration = configuration;
         _logger = logger;
         // Serial port.
         _serialPortName = _configuration["SERIAL_PORT"];
-        if (String.IsNullOrEmpty(_serialPortName))
+        if (string.IsNullOrEmpty(_serialPortName))
         {
             throw new InvalidOperationException(nameof(_serialPortName));
         }
@@ -57,11 +51,11 @@ public class Worker : BackgroundService
         _atTopic = _configuration["MQTT_AT_TOPIC"];
         _ioTopic = _configuration["MQTT_IO_TOPIC"];
         _niTopic = _configuration["MQTT_NI_TOPIC"];
-        if (String.IsNullOrEmpty(_rxTopic) ||
-            String.IsNullOrEmpty(_txTopic) ||
-            String.IsNullOrEmpty(_atTopic) ||
-            String.IsNullOrEmpty(_ioTopic) ||
-            String.IsNullOrEmpty(_niTopic))
+        if (string.IsNullOrEmpty(_rxTopic) ||
+            string.IsNullOrEmpty(_txTopic) ||
+            string.IsNullOrEmpty(_atTopic) ||
+            string.IsNullOrEmpty(_ioTopic) ||
+            string.IsNullOrEmpty(_niTopic))
         {
             throw new InvalidOperationException();
         }
@@ -123,55 +117,44 @@ public class Worker : BackgroundService
 
             if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
             {
-                ReceivePacket? receivePacket;
-                if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket is null)
+                if (!ReceivePacket.Parse(out ReceivePacket? receivePacket, xbeeFrame) || receivePacket is null)
                 {
                     _logger.LogError("Invalid receive packet.");
                     continue;
                 }
                 var sourceAddress = receivePacket.SourceAddress.AsString();
                 var optionText = receivePacket.ReceiveOptions == 1 ? "with response" : "broadcast";
-                var data = Encoding.Default.GetString(receivePacket.ReceiveData.ToArray());
+                var data = Encoding.Default.GetString([.. receivePacket.ReceiveData]);
                 _logger.LogDebug($"RX packet {optionText} from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {data}");
 
-                var topic = $"{_rxTopic}/{sourceAddress}";
-                if (topic is null)
-                {
-                    throw new InvalidOperationException("rx topic");
-                }
+                var topic = $"{_rxTopic}/{sourceAddress}" ?? throw new InvalidOperationException("rx topic");
                 await PublishMessageAsync($"{topic}", receivePacket.ReceiveData);
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
             {
-                ReceiveIOPacket? receivePacket;
-                if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket is null)
+                if (!ReceiveIOPacket.Parse(out ReceiveIOPacket? receivePacket, xbeeFrame) || receivePacket is null)
                 {
                     _logger.LogError("Invalid receive IO packet.");
                     continue;
                 }
                 var sourceAddress = receivePacket.SourceAddress.AsString();
                 var sampleBuilder = new StringBuilder();
-                foreach (var dio in receivePacket.DigitalSamples)
+                foreach (var (Dio, Value) in receivePacket.DigitalSamples)
                 {
-                    sampleBuilder.Append($"DIO{dio.Dio}={dio.Value} ");
+                    sampleBuilder.Append($"DIO{Dio}={Value} ");
                 }
-                foreach (var adc in receivePacket.AnalogSamples)
+                foreach (var (Adc, Value) in receivePacket.AnalogSamples)
                 {
-                    sampleBuilder.Append($"AD{adc.Adc}={adc.Value:X4} ");
+                    sampleBuilder.Append($"AD{Adc}={Value:X4} ");
                 }
                 var samples = sampleBuilder.ToString().Trim();
                 _logger.LogInformation($"RX IO from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {samples}");
-                var topic = $"{_ioTopic}/{sourceAddress}";
-                if (topic is null)
-                {
-                    throw new InvalidOperationException("io topic");
-                }
+                var topic = $"{_ioTopic}/{sourceAddress}" ?? throw new InvalidOperationException("io topic");
                 await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes(samples));
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeExtendedTransmitStatus)
             {
-                ExtendedTransmitStatusPacket? extendedTransmitStatus;
-                if (!ExtendedTransmitStatusPacket.Parse(out extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus is null)
+                if (!ExtendedTransmitStatusPacket.Parse(out ExtendedTransmitStatusPacket? extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus is null)
                 {
                     _logger.LogError("Invalid extended receive status packet.");
                     continue;
@@ -187,8 +170,7 @@ public class Worker : BackgroundService
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeModemStatus)
             {
-                ModemStatusPacket? modemStatusPacket;
-                if (!ModemStatusPacket.Parse(out modemStatusPacket, xbeeFrame) || modemStatusPacket is null)
+                if (!ModemStatusPacket.Parse(out ModemStatusPacket? modemStatusPacket, xbeeFrame) || modemStatusPacket is null)
                 {
                     _logger.LogError("Invalid modem status packet.");
                     continue;
@@ -197,8 +179,7 @@ public class Worker : BackgroundService
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
             {
-                ATCommandResponsePacket? remoteATCommandResponse;
-                if (!ATCommandResponsePacket.Parse(out remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse is null)
+                if (!ATCommandResponsePacket.Parse(out ATCommandResponsePacket? remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse is null)
                 {
                     _logger.LogError("Invalid remote AT response packet.");
                     continue;
@@ -214,8 +195,7 @@ public class Worker : BackgroundService
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeNodeIdentification)
             {
-                NodeIdentificationPacket? nodeIdentificationPacket;
-                if (!NodeIdentificationPacket.Parse(out nodeIdentificationPacket, xbeeFrame) || nodeIdentificationPacket is null)
+                if (!NodeIdentificationPacket.Parse(out NodeIdentificationPacket? nodeIdentificationPacket, xbeeFrame) || nodeIdentificationPacket is null)
                 {
                     _logger.LogError("Invalid node identification packet.");
                     continue;
@@ -235,11 +215,7 @@ public class Worker : BackgroundService
                     _logger.LogWarning($"Invalid node identification packet device type: {nodeIdentificationPacket.DeviceType:X2} from {remoteSourceAddress}");
                 }
                 _logger.LogInformation($"Node identification {nodeIdent} {deviceType}: {remoteSourceAddress} {networkAddress}");
-                var topic = $"{_niTopic}/{nodeIdentificationPacket.RemoteSourceAddress.AsString()}";
-                if (topic is null)
-                {
-                    throw new InvalidOperationException("ni topic");
-                }
+                var topic = $"{_niTopic}/{nodeIdentificationPacket.RemoteSourceAddress.AsString()}" ?? throw new InvalidOperationException("ni topic");
                 await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes($"{deviceType} 0x{nodeIdentificationPacket.RemoteNetworkAddress:X4} {nodeIdent}"));
             }
             // Common known packet types not processed:
@@ -374,7 +350,7 @@ public class Worker : BackgroundService
             else if (e.ApplicationMessage.Topic.StartsWith(_atTopic))
             {
                 var splitTopic = e.ApplicationMessage.Topic.Split('/');
-                var address = splitTopic[splitTopic.Length - 1];
+                var address = splitTopic[^1];
                 // Payload first two bytes are AT command (e.g. D0), remaining are parameter value (e.g. 0x00 0x05).
                 var command = new byte[] { e.ApplicationMessage.PayloadSegment[0], e.ApplicationMessage.PayloadSegment[1] };
                 var parameterValue = new List<byte>(e.ApplicationMessage.PayloadSegment).GetRange(2, e.ApplicationMessage.PayloadSegment.Count - 2);
@@ -390,7 +366,7 @@ public class Worker : BackgroundService
             }
             if (xbeeFrame is not null)
             {
-                await baseStream.WriteAsync(xbeeFrame.Data.ToArray(), 0, xbeeFrame.Data.Count);
+                await baseStream.WriteAsync(xbeeFrame.Data.ToArray().AsMemory(0, xbeeFrame.Data.Count));
                 _logger.LogInformation($"Handled {e.ApplicationMessage.Topic}");
             }
             _logger.LogDebug($"Topic = {e.ApplicationMessage.Topic}");

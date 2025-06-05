@@ -71,7 +71,7 @@ public class Worker : BackgroundService
             }
             catch (MqttCommunicationException ex)
             {
-                _logger.LogError(ex.ToString());
+                _logger.LogError("{Exception}", ex.ToString());
                 await DisconnectMqtt();
                 _logger.LogError("Exiting after communication exception.");
                 await Task.Delay(5000);
@@ -125,7 +125,7 @@ public class Worker : BackgroundService
                 var sourceAddress = receivePacket.SourceAddress.AsString();
                 var optionText = receivePacket.ReceiveOptions == 1 ? "with response" : "broadcast";
                 var data = Encoding.Default.GetString([.. receivePacket.ReceiveData]);
-                _logger.LogDebug($"RX packet {optionText} from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {data}");
+                _logger.LogDebug("RX packet {Option} from {SourceAddress} 0x{NetworkAddress:X4}: {Data}", optionText, sourceAddress, receivePacket.NetworkAddress, data);
 
                 var topic = $"{_rxTopic}/{sourceAddress}" ?? throw new InvalidOperationException("rx topic");
                 await PublishMessageAsync($"{topic}", receivePacket.ReceiveData);
@@ -148,7 +148,7 @@ public class Worker : BackgroundService
                     sampleBuilder.Append($"AD{Adc}={Value:X4} ");
                 }
                 var samples = sampleBuilder.ToString().Trim();
-                _logger.LogInformation($"RX IO from {sourceAddress} 0x{receivePacket.NetworkAddress:X4}: {samples}");
+                _logger.LogInformation("RX IO from {SourceAddress} 0x{NetworkAddress:X4}: {Samples}", sourceAddress, receivePacket.NetworkAddress, samples);
                 var topic = $"{_ioTopic}/{sourceAddress}" ?? throw new InvalidOperationException("io topic");
                 await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes(samples));
             }
@@ -161,11 +161,11 @@ public class Worker : BackgroundService
                 }
                 if (extendedTransmitStatus.DeliveryStatus != 0)
                 {
-                    _logger.LogWarning($"Extended transmit status error 0x{extendedTransmitStatus.DeliveryStatus:X2} from 0x{extendedTransmitStatus.NetworkAddress:X4}");
+                    _logger.LogWarning("Extended transmit status error 0x{DeliveryStatus:X2} from 0x{NetworkAddress:X4}", extendedTransmitStatus.DeliveryStatus, extendedTransmitStatus.NetworkAddress);
                 }
                 else
                 {
-                    _logger.LogInformation($"Extended transmit status frame id = {extendedTransmitStatus.FrameId} from 0x{extendedTransmitStatus.NetworkAddress:X4}");
+                    _logger.LogInformation("Extended transmit status frame id = {FrameId} from 0x{NetworkAddress:X4}", extendedTransmitStatus.FrameId, extendedTransmitStatus.NetworkAddress);
                 }
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeModemStatus)
@@ -175,7 +175,7 @@ public class Worker : BackgroundService
                     _logger.LogError("Invalid modem status packet.");
                     continue;
                 }
-                _logger.LogInformation($"Modem status = {modemStatusPacket.ModemStatus}");
+                _logger.LogInformation("Modem status = {ModemStatus}", modemStatusPacket.ModemStatus);
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeRemoteATCommandResponse)
             {
@@ -186,11 +186,11 @@ public class Worker : BackgroundService
                 }
                 if (remoteATCommandResponse.CommandStatus != 0)
                 {
-                    _logger.LogWarning($"Remote AT response packet error 0x{remoteATCommandResponse.CommandStatus:X2} from {remoteATCommandResponse.SourceAddress.AsString()}");
+                    _logger.LogWarning("Remote AT response packet error 0x{CommandStatus:X2} from {SourceAddress}", remoteATCommandResponse.CommandStatus, remoteATCommandResponse.SourceAddress.AsString());
                 }
                 else
                 {
-                    _logger.LogInformation($"Remote AT response command {remoteATCommandResponse.Command} from {remoteATCommandResponse.SourceAddress.AsString()}");
+                    _logger.LogInformation("Remote AT response command {Command} from {SourceAddress}", remoteATCommandResponse.Command, remoteATCommandResponse.SourceAddress.AsString());
                 }
             }
             else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeNodeIdentification)
@@ -212,9 +212,9 @@ public class Worker : BackgroundService
                 };
                 if (string.IsNullOrEmpty(deviceType))
                 {
-                    _logger.LogWarning($"Invalid node identification packet device type: {nodeIdentificationPacket.DeviceType:X2} from {remoteSourceAddress}");
+                    _logger.LogWarning("Invalid node identification packet device type: {DeviceType:X2} from {RemoteSourceAddress}", nodeIdentificationPacket.DeviceType, remoteSourceAddress);
                 }
-                _logger.LogInformation($"Node identification {nodeIdent} {deviceType}: {remoteSourceAddress} {networkAddress}");
+                _logger.LogInformation("Node identification {NodeIdent} {DeviceType}: {RemoteSourceAddress} {NetworkAddress}", nodeIdent, deviceType, remoteSourceAddress, networkAddress);
                 var topic = $"{_niTopic}/{nodeIdentificationPacket.RemoteSourceAddress.AsString()}" ?? throw new InvalidOperationException("ni topic");
                 await PublishMessageAsync($"{topic}", Encoding.ASCII.GetBytes($"{deviceType} 0x{nodeIdentificationPacket.RemoteNetworkAddress:X4} {nodeIdent}"));
             }
@@ -225,7 +225,7 @@ public class Worker : BackgroundService
             }
             else
             {
-                _logger.LogWarning($"Unsupported frame type: {xbeeFrame.FrameType:X2}");
+                _logger.LogWarning("Unsupported frame type: {FrameType:X2}", xbeeFrame.FrameType);
             }
         }
     }
@@ -265,7 +265,7 @@ public class Worker : BackgroundService
                         .WithCleanSession(true)
                         .WithKeepAlivePeriod(TimeSpan.FromSeconds(5))
                         .Build();
-        _logger.LogInformation($"Connecting to {server}:{port} with client id {clientId}");
+        _logger.LogInformation("Connecting to {Server}:{Port} with client id {ClientId}", server, port, clientId);
         _mqttClient = mqttFactory.CreateMqttClient();
         if (_mqttClient == null)
         {
@@ -284,7 +284,7 @@ public class Worker : BackgroundService
         var connectResult = await _mqttClient.ConnectAsync(options);
         if (connectResult.ResultCode != MqttClientConnectResultCode.Success)
         {
-            _logger.LogError($"MQTT connection failed: {connectResult.ReasonString}");
+            _logger.LogError("MQTT connection failed: {ReasonString}", connectResult.ReasonString);
             return false;
 
         }
@@ -316,11 +316,11 @@ public class Worker : BackgroundService
                             .WithPayload(payload)
                             .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.ExactlyOnce)
                             .Build();
-        _logger.LogInformation($"Publishing {topic}");
+        _logger.LogInformation("Publishing {Topic}", topic);
         var pubResult = await _mqttClient.PublishAsync(message);
         if (pubResult.ReasonCode != MqttClientPublishReasonCode.Success)
         {
-            _logger.LogError($"Published failed: {pubResult.ReasonString}");
+            _logger.LogError("Published failed: {ReasonString}", pubResult.ReasonString);
         }
     }
 
@@ -328,7 +328,6 @@ public class Worker : BackgroundService
     {
         try
         {
-            XbeeFrame? xbeeFrame;
             if (String.IsNullOrEmpty(_txTopic))
             {
                 throw new InvalidOperationException(nameof(_txTopic));
@@ -337,46 +336,73 @@ public class Worker : BackgroundService
             {
                 throw new InvalidOperationException(nameof(_atTopic));
             }
+
+            XbeeFrame? xbeeFrame;
+
             if (e.ApplicationMessage.Topic.StartsWith(_txTopic))
             {
-                var splitTopic = e.ApplicationMessage.Topic.Split('/');
-                var address = splitTopic[splitTopic.Length - 1];
-                var xbeeAddress = XbeeAddress.Create(address);
-                if (false == TransmitPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultTransmitFrameId, e.ApplicationMessage.PayloadSegment, escaped))
-                {
-                    throw new ApplicationException("Could not create transmit packet.");
-                }
+                xbeeFrame = CreateTransmitFrame(e, escaped);
             }
             else if (e.ApplicationMessage.Topic.StartsWith(_atTopic))
             {
-                var splitTopic = e.ApplicationMessage.Topic.Split('/');
-                var address = splitTopic[^1];
-                // Payload first two bytes are AT command (e.g. D0), remaining are parameter value (e.g. 0x00 0x05).
-                var command = new byte[] { e.ApplicationMessage.PayloadSegment[0], e.ApplicationMessage.PayloadSegment[1] };
-                var parameterValue = new List<byte>(e.ApplicationMessage.PayloadSegment).GetRange(2, e.ApplicationMessage.PayloadSegment.Count - 2);
-                var xbeeAddress = XbeeAddress.Create(address);
-                if (false == TransmitATPacket.CreateXbeeFrame(out xbeeFrame, xbeeAddress, DefaultTransmitATFrameId, command, parameterValue, escaped))
-                {
-                    throw new ApplicationException("Could not create remote AT packet.");
-                }
+                xbeeFrame = CreateATFrame(e, escaped);
             }
             else
             {
-                throw new ApplicationException($"Invalid topic and/or paylod: {e.ApplicationMessage.Topic}");
+                throw new ApplicationException($"Invalid topic and/or payload: {e.ApplicationMessage.Topic}");
             }
+
             if (xbeeFrame is not null)
             {
                 await baseStream.WriteAsync(xbeeFrame.Data.ToArray().AsMemory(0, xbeeFrame.Data.Count));
-                _logger.LogInformation($"Handled {e.ApplicationMessage.Topic}");
+                _logger.LogInformation("Handled {Topic}", e.ApplicationMessage.Topic);
             }
-            _logger.LogDebug($"Topic = {e.ApplicationMessage.Topic}");
-            _logger.LogDebug($"Payload = {Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment)}");
-            _logger.LogDebug($"QoS = {e.ApplicationMessage.QualityOfServiceLevel}");
-            _logger.LogDebug($"Retain = {e.ApplicationMessage.Retain}");
+
+            LogMqttMessage(e);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex.ToString());
+            _logger.LogError(ex, "Error handling MQTT message: {Message}", e.ApplicationMessage.Topic);
         }
+    }
+
+    private XbeeFrame? CreateTransmitFrame(MqttApplicationMessageReceivedEventArgs e, bool escaped)
+    {
+        var splitTopic = e.ApplicationMessage.Topic.Split('/');
+        var address = splitTopic[^1];
+        var xbeeAddress = XbeeAddress.Create(address);
+
+        if (!TransmitPacket.CreateXbeeFrame(out var xbeeFrame, xbeeAddress, DefaultTransmitFrameId, e.ApplicationMessage.PayloadSegment, escaped))
+        {
+            throw new ApplicationException("Could not create transmit packet.");
+        }
+        return xbeeFrame;
+    }
+
+    private XbeeFrame? CreateATFrame(MqttApplicationMessageReceivedEventArgs e, bool escaped)
+    {
+        var splitTopic = e.ApplicationMessage.Topic.Split('/');
+        var address = splitTopic[^1];
+        var payload = e.ApplicationMessage.PayloadSegment;
+
+        if (payload.Count < 2)
+            throw new ApplicationException("AT command payload too short.");
+
+        var command = new byte[] { payload[0], payload[1] };
+        var parameterValue = new List<byte>(payload).GetRange(2, payload.Count - 2);
+        var xbeeAddress = XbeeAddress.Create(address);
+
+        if (!TransmitATPacket.CreateXbeeFrame(out var xbeeFrame, xbeeAddress, DefaultTransmitATFrameId, command, parameterValue, escaped))
+        {
+            throw new ApplicationException("Could not create remote AT packet.");
+        }
+        return xbeeFrame;
+    }
+    private void LogMqttMessage(MqttApplicationMessageReceivedEventArgs e)
+    {
+        _logger.LogDebug("Topic = {Topic}", e.ApplicationMessage.Topic);
+        _logger.LogDebug("Payload = {Payload}", Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment));
+        _logger.LogDebug("QoS = {QualityOfServiceLevel}", e.ApplicationMessage.QualityOfServiceLevel);
+        _logger.LogDebug("Retain = {Retain}", e.ApplicationMessage.Retain);
     }
 }

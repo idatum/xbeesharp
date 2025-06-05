@@ -1,5 +1,5 @@
 # xbeesharp
-.NET 8 C# implementation of [Digi XBee](https://www.digi.com/products/embedded-systems/digi-xbee/rf-modules/2-4-ghz-rf-modules/xbee-zigbee) ZigBee API operations, focusing on transmit request, remote AT command request, and receive and IO packets. These cover all current scenarios of my XBee devices.
+.NET 9 C# implementation of [Digi XBee](https://www.digi.com/products/embedded-systems/digi-xbee/rf-modules/2-4-ghz-rf-modules/xbee-zigbee) ZigBee API operations, focusing on transmit request, remote AT command request, and receive and IO packets. These cover all current scenarios of my XBee devices.
 
 Initial applications include [xbee2mqtt](https://github.com/idatum/xbeesharp/tree/main/apps/xbee2mqtt), which maps XBee receive packets to MQTT messages, as well as transmitting messages and remote AT commands from subscribed MQTT topics. It is implemented using [MQTTnet](https://github.com/dotnet/MQTTnet). I use this to map all of my XBee device packets to MQTT messages. This is allows me to integrate with [Home Assistant](https://www.home-assistant.io/) and other custom applications I use for home automation.
 

@@ -81,12 +81,12 @@ public class XbeeSerial
                     {
                         frameDataBuilder.Append($"{b:X2}");
                     }
-                    _logger.LogError($"Checksum invalid; frame data: {frameDataBuilder}");
+                    _logger.LogError("Checksum invalid; frame data: {FrameData}", frameDataBuilder);
                     return null;
                 }
                 XbeeFrame? xbeeFrame = xbeeFrameBuilder.ToXbeeFrame();
                 xbeeFrameBuilder.Reset();
-                _logger.LogDebug($"Read frame type 0x{xbeeFrame.FrameType:X2}.");
+                _logger.LogDebug("Read frame type 0x{FrameType:X2}.", xbeeFrame.FrameType);
 
                 return xbeeFrame;
             }

@@ -6,13 +6,14 @@ const string SerialPortName = "/dev/ttyUSB0";
 const int SerialBaudRate = 115200;
 const bool Escaped = true;
 
-var serialPort = new SerialPort(SerialPortName, SerialBaudRate);
-serialPort.WriteTimeout = 500;
+var serialPort = new SerialPort(SerialPortName, SerialBaudRate)
+{
+    WriteTimeout = 500
+};
 serialPort.Open();
 while (true)
 {
-    XbeeFrame? xbeeFrame;
-    if (XbeeSerial.TryReadNextFrame(out xbeeFrame, serialPort, Escaped))
+    if (XbeeSerial.TryReadNextFrame(out XbeeFrame? xbeeFrame, serialPort, Escaped))
     {
         if (xbeeFrame is null)
         {
@@ -20,8 +21,7 @@ while (true)
         }
         if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceive)
         {
-            ReceivePacket? receivePacket;
-            if (!ReceivePacket.Parse(out receivePacket, xbeeFrame) || receivePacket is null)
+            if (!ReceivePacket.Parse(out ReceivePacket? receivePacket, xbeeFrame) || receivePacket is null)
             {
                 Console.WriteLine("Invalid receive packet.");
                 continue;
@@ -34,8 +34,7 @@ while (true)
         }
         else if (xbeeFrame.FrameType == XbeeFrame.PacketTypeReceiveIO)
         {
-            ReceiveIOPacket? receivePacket;
-            if (!ReceiveIOPacket.Parse(out receivePacket, xbeeFrame) || receivePacket is null)
+            if (!ReceiveIOPacket.Parse(out ReceiveIOPacket? receivePacket, xbeeFrame) || receivePacket is null)
             {
                 Console.WriteLine("Invalid receive IO packet.");
                 continue;

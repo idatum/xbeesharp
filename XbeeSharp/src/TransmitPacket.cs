@@ -50,7 +50,7 @@ public static class TransmitPacket
             XbeeFrameBuilder.AppendWithEscape(escaped, rawData, b);
             ++dataLen;
         }
-        // Fill remaing frame bytes.
+        // Fill remaining frame bytes.
         // Start byte and big endian data length.
         byte dataLenHi = (byte)(dataLen >> 8);
         byte dataLenLo = (byte)(dataLen & 0xFF);

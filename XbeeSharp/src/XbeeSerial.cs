@@ -65,7 +65,7 @@ public class XbeeSerial
         var xbeeFrameBuilder = new XbeeFrameBuilder(escaped);
         while (!_stoppingToken.IsCancellationRequested)
         {
-            var bytesRead = await serialPort.BaseStream.ReadAsync(readBuffer, 0, 1);
+            var bytesRead = await serialPort.BaseStream.ReadAsync(readBuffer.AsMemory(0, 1));
             if (bytesRead == 0)
             {
                 _logger.LogError("Zero bytes returned from serial port.");

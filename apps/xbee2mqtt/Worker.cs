@@ -156,12 +156,12 @@ public class Worker : BackgroundService
             {
                 if (!ExtendedTransmitStatusPacket.Parse(out ExtendedTransmitStatusPacket? extendedTransmitStatus, xbeeFrame) || extendedTransmitStatus is null)
                 {
-                    _logger.LogError("Invalid extended receive status packet.");
+                    _logger.LogWarning("Invalid extended receive status packet.");
                     continue;
                 }
                 if (extendedTransmitStatus.DeliveryStatus != 0)
                 {
-                    _logger.LogWarning("Extended transmit status error 0x{DeliveryStatus:X2} from 0x{NetworkAddress:X4}", extendedTransmitStatus.DeliveryStatus, extendedTransmitStatus.NetworkAddress);
+                    _logger.LogInformation("Extended transmit status error 0x{DeliveryStatus:X2} from 0x{NetworkAddress:X4}", extendedTransmitStatus.DeliveryStatus, extendedTransmitStatus.NetworkAddress);
                 }
                 else
                 {
@@ -181,7 +181,7 @@ public class Worker : BackgroundService
             {
                 if (!ATCommandResponsePacket.Parse(out ATCommandResponsePacket? remoteATCommandResponse, xbeeFrame) || remoteATCommandResponse is null)
                 {
-                    _logger.LogError("Invalid remote AT response packet.");
+                    _logger.LogWarning("Invalid remote AT response packet.");
                     continue;
                 }
                 if (remoteATCommandResponse.CommandStatus != 0)
@@ -197,7 +197,7 @@ public class Worker : BackgroundService
             {
                 if (!NodeIdentificationPacket.Parse(out NodeIdentificationPacket? nodeIdentificationPacket, xbeeFrame) || nodeIdentificationPacket is null)
                 {
-                    _logger.LogError("Invalid node identification packet.");
+                    _logger.LogWarning("Invalid node identification packet.");
                     continue;
                 }
                 var remoteSourceAddress = nodeIdentificationPacket.RemoteSourceAddress.AsString();

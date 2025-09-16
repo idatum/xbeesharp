@@ -62,10 +62,9 @@ public class ReceivePacketIOTests
     {
         XbeeFrame? xbeeFrame = XbeeTestUtils.CreateFrameFromBuilder(ValidAnalogIOPacket, true);
         Assert.NotNull(xbeeFrame);
-        ReceiveIOPacket? packet;
         if (xbeeFrame != null)
         {
-            Assert.True(ReceiveIOPacket.Parse(out packet, xbeeFrame));
+            Assert.True(ReceiveIOPacket.Parse(out ReceiveIOPacket? packet, xbeeFrame));
             if (packet != null)
             {
                 Assert.Equal(XbeeFrame.PacketTypeReceiveIO, xbeeFrame.FrameType);

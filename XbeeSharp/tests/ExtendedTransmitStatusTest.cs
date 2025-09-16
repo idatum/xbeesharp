@@ -12,8 +12,7 @@ public class ExtendedTransmitStatusTest
         if (xbeeFrame != null)
         {
             Assert.True(XbeeFrameBuilder.ChecksumValid(xbeeFrame.Data, false));
-            ExtendedTransmitStatusPacket? packet;
-            Assert.True(ExtendedTransmitStatusPacket.Parse(out packet, xbeeFrame));
+            Assert.True(ExtendedTransmitStatusPacket.Parse(out ExtendedTransmitStatusPacket? packet, xbeeFrame));
             Assert.NotNull(packet);
             if (packet != null)
             {

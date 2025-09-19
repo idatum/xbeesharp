@@ -25,6 +25,7 @@ public class Worker : BackgroundService
     private readonly IConfiguration _configuration;
     private readonly ILogger<Worker> _logger;
     private IMqttClient? _mqttClient;
+    private readonly bool _useV5;
 
     public Worker(IConfiguration configuration,
                   ILogger<Worker> logger)
@@ -44,6 +45,7 @@ public class Worker : BackgroundService
         {
             throw new InvalidOperationException(nameof(_serialBaudRate));
         }
+        _useV5 = _configuration.GetValue<bool>("MQTT_USE_V5");
 
         // MQTT topics.
         _rxTopic = _configuration["MQTT_RX_TOPIC"];
@@ -74,7 +76,7 @@ public class Worker : BackgroundService
                 _logger.LogError("{Exception}", ex.ToString());
                 await DisconnectMqtt();
                 _logger.LogError("Exiting after communication exception.");
-                await Task.Delay(5000);
+                await Task.Delay(5000, stoppingToken);
             }
         }
     }
@@ -230,16 +232,6 @@ public class Worker : BackgroundService
         }
     }
 
-    private void OnPublisherConnected(MqttClientConnectedEventArgs x)
-    {
-        _logger.LogInformation("MQTT connected");
-    }
-
-    private void OnPublisherDisconnected(MqttClientDisconnectedEventArgs x)
-    {
-        _logger.LogInformation("MQTT disconnected");
-    }
-
     private async Task<bool> ConnectMqtt()
     {
         if (_configuration is null)
@@ -259,18 +251,14 @@ public class Worker : BackgroundService
         };
         var options = new MqttClientOptionsBuilder()
                         .WithCredentials(username, password)
-                        .WithProtocolVersion(MqttProtocolVersion.V311)
+                        .WithProtocolVersion(_useV5 ? MqttProtocolVersion.V500 : MqttProtocolVersion.V311)
                         .WithTcpServer(server, port)
                         .WithTlsOptions(tlsOptions)
                         .WithCleanSession(true)
                         .WithKeepAlivePeriod(TimeSpan.FromSeconds(5))
                         .Build();
         _logger.LogInformation("Connecting to {Server}:{Port} with client id {ClientId}", server, port, clientId);
-        _mqttClient = mqttFactory.CreateMqttClient();
-        if (_mqttClient == null)
-        {
-            throw new InvalidOperationException("_mqttClient");
-        }
+        _mqttClient = mqttFactory.CreateMqttClient() ?? throw new InvalidOperationException("_mqttClient");
         _mqttClient.ConnectedAsync += (MqttClientConnectedEventArgs args) =>
         {
             _logger.LogInformation("MQTT connected");
@@ -366,7 +354,7 @@ public class Worker : BackgroundService
         }
     }
 
-    private XbeeFrame? CreateTransmitFrame(MqttApplicationMessageReceivedEventArgs e, bool escaped)
+    private static XbeeFrame? CreateTransmitFrame(MqttApplicationMessageReceivedEventArgs e, bool escaped)
     {
         var splitTopic = e.ApplicationMessage.Topic.Split('/');
         var address = splitTopic[^1];
@@ -379,7 +367,7 @@ public class Worker : BackgroundService
         return xbeeFrame;
     }
 
-    private XbeeFrame? CreateATFrame(MqttApplicationMessageReceivedEventArgs e, bool escaped)
+    private static XbeeFrame? CreateATFrame(MqttApplicationMessageReceivedEventArgs e, bool escaped)
     {
         var splitTopic = e.ApplicationMessage.Topic.Split('/');
         var address = splitTopic[^1];
